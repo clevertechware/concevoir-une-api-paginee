@@ -1,0 +1,27 @@
+server:
+  host: ""
+  port: 8080
+  mode: debug
+  shutdown_timeout: 10s
+
+postgres:
+  host: localhost
+  port: 5432
+  database: pagination
+  user: postgres
+  password: pagination
+  sslmode: disable
+  min_conns: 2
+  max_conns: 10
+
+logging:
+  level: info
+  format: text
+
+cursor:
+  # Development key. In production it comes from the environment, never from a
+  # committed file: PAGINATION_CURSOR__KEY=...
+  key: concevoir-une-api-paginee-dev-key
+  # 72 hours of resumable position. Past it, a well-formed cursor answers 410
+  # and the client restarts its walk.
+  ttl: 72h

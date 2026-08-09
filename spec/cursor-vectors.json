@@ -1,0 +1,38 @@
+{
+  "hmac_key_utf8": "concevoir-une-api-paginee-test-key",
+  "vectors": [
+    {
+      "name": "unfiltered first-page cursor, descending",
+      "filters": {
+        "account_id": 0,
+        "status": "",
+        "sort": "created_at:desc"
+      },
+      "fingerprint": "jlkDlANVKaQ",
+      "payload": "{\"v\":1,\"c\":\"2021-05-03T19:32:40.000000Z\",\"i\":9999998,\"d\":true,\"f\":\"jlkDlANVKaQ\",\"t\":1767225600}",
+      "token": "Cx2NDdFZw7j48HeIZNFYvhd7JBksXIZuj8_okaPLgfl7InYiOjEsImMiOiIyMDIxLTA1LTAzVDE5OjMyOjQwLjAwMDAwMFoiLCJpIjo5OTk5OTk4LCJkIjp0cnVlLCJmIjoiamxrRGxBTlZLYVEiLCJ0IjoxNzY3MjI1NjAwfQ"
+    },
+    {
+      "name": "account-filtered cursor, descending",
+      "filters": {
+        "account_id": 42,
+        "status": "",
+        "sort": "created_at:desc"
+      },
+      "fingerprint": "zJlP3yfvPv8",
+      "payload": "{\"v\":1,\"c\":\"2021-01-08T01:47:00.000000Z\",\"i\":9500001,\"d\":true,\"f\":\"zJlP3yfvPv8\",\"t\":1767225600}",
+      "token": "xOWqhOcSr9wGg0dsKfB1PzIyKEBU7Bs-V7RdueUj7MN7InYiOjEsImMiOiIyMDIxLTAxLTA4VDAxOjQ3OjAwLjAwMDAwMFoiLCJpIjo5NTAwMDAxLCJkIjp0cnVlLCJmIjoiekpsUDN5ZnZQdjgiLCJ0IjoxNzY3MjI1NjAwfQ"
+    },
+    {
+      "name": "ascending cursor with a status filter",
+      "filters": {
+        "account_id": 42,
+        "status": "SETTLED",
+        "sort": "created_at:asc"
+      },
+      "fingerprint": "ysln4sD3H8g",
+      "payload": "{\"v\":1,\"c\":\"2015-01-01T00:00:20.000000Z\",\"i\":1,\"d\":false,\"f\":\"ysln4sD3H8g\",\"t\":1767225600}",
+      "token": "Cb-HKQMorL94SvhLF2sDZVV53atTaHeCEQPY_8M_EB17InYiOjEsImMiOiIyMDE1LTAxLTAxVDAwOjAwOjIwLjAwMDAwMFoiLCJpIjoxLCJkIjpmYWxzZSwiZiI6InlzbG40c0QzSDhnIiwidCI6MTc2NzIyNTYwMH0"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+.idea/
+.vscode/
+.DS_Store
+.claude/settings.local.json
+
+# Go
+bin/
+*.exe
+*.test
+*.out
+go.work
+go.work.sum
+
+# Java
+target/
+build/
+!**/src/main/**/target/
+!**/src/test/**/target/
+.gradle/

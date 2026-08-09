@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: postgres:18.4
+    container_name: concevoir_une_api_paginee
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: pagination
+      POSTGRES_DB: pagination
+    ports:
+      - "5432:5432"
+    # /dev/shm is where parallel workers allocate their shared memory. Docker
+    # caps it at 64 MB, and the COUNT(*) of the benchmark fails on
+    # "could not resize shared memory segment" without this.
+    shm_size: 1gb
+    # No tuning on purpose: shared_buffers stays at its 128 MB default, far
+    # below the table size, so the cache thrashes and the plan's `written`
+    # counter stays visible.
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pagination"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

@@ -21,7 +21,7 @@ La liste recommandée par l'article. C'est celle qu'un connecteur consomme.
 | `account_id` | non         | —      | filtre tenant, entier positif |
 | `status`     | non         | `""`   | réservé, entre dans l'empreinte des filtres |
 | `sort`       | non         | `created_at:desc` | `created_at:desc` ou `created_at:asc` uniquement |
-| `limit`      | non         | `20`   | **plafonné à 100**, on plafonne, on ne rejette pas |
+| `limit`      | non         | `20`   | **plafonné à 100**, on plafonne, on ne rejette pas. `0` = absent (AIP-158), négatif = `400` |
 | `cursor`     | non         | —      | opaque, signé. Absent = première page |
 
 Réponse `200` :
@@ -116,10 +116,17 @@ Enveloppe commune :
 | Curseur illisible, signature invalide, mauvaise version | `400` | `invalid_cursor` |
 | Curseur émis il y a plus de 72 h | `410` | `cursor_expired` |
 | Filtres modifiés en cours de parcours | `400` | `cursor_filter_mismatch` |
-| `limit` négatif ou non numérique | `400` | `invalid_limit` |
+| `limit` / `size` négatif ou non numérique | `400` | `invalid_limit` |
 | `page` < 1 ou non numérique | `400` | `invalid_page` |
 | `sort` inconnu | `400` | `invalid_sort` |
-| `account_id` non numérique | `400` | `invalid_account_id` |
+| `account_id` non numérique, nul ou négatif | `400` | `invalid_account_id` |
+| `after_id` négatif ou non numérique | `400` | `invalid_after_id` |
+
+Un `limit=0` **n'est pas une erreur** : l'AIP-158 le lit comme « pas de préférence »
+et le serveur applique son défaut. Seule une valeur négative est un bug client. Un
+`account_id=0` en revanche est refusé, parce que `0` est précisément la valeur que
+l'empreinte des filtres utilise pour dire « pas de filtre » : l'accepter rendrait
+deux requêtes différentes indiscernables dans le curseur.
 
 Le `410` sur curseur expiré n'est pas un `400` : la demande était bien formée,
 c'est la position qui n'existe plus. C'est exactement ce dont le client a besoin

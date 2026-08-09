@@ -28,11 +28,17 @@ class QueryParametersTest {
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"-1", "0", "abc", "20.5"})
-    void rejectsANonPositiveOrNonNumericLimitAsInvalidLimit(String raw) {
+    @ValueSource(strings = {"-1", "abc", "20.5"})
+    void rejectsANegativeOrNonNumericLimitAsInvalidLimit(String raw) {
         assertThatExceptionOfType(InvalidParameterException.class)
                 .isThrownBy(() -> QueryParameters.limit(raw, 20, 100))
                 .matches(e -> e.code().equals("invalid_limit"));
+    }
+
+    @Test
+    void readsAnExplicitZeroLimitAsNoPreferenceRatherThanAsAnError() {
+        assertThat(QueryParameters.limit("0", 20, 100)).isEqualTo(20);
+        assertThat(QueryParameters.size("0", 20, 100)).isEqualTo(20);
     }
 
     @ParameterizedTest

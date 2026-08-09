@@ -80,9 +80,14 @@ final class QueryParameters {
         if (raw == null || raw.isBlank()) {
             return defaultValue;
         }
-        long requested = parseLong(raw, code, name + " must be an integer greater than or equal to 1");
-        if (requested < 1) {
-            throw new InvalidParameterException(code, name + " must be an integer greater than or equal to 1");
+        long requested = parseLong(raw, code, name + " must be a positive integer");
+        // AIP-158 reads an explicit zero as "no preference", not as an error. Only a negative
+        // value is a client bug worth a 400.
+        if (requested == 0) {
+            return defaultValue;
+        }
+        if (requested < 0) {
+            throw new InvalidParameterException(code, name + " must be a positive integer");
         }
         return (int) Math.min(requested, maximum);
     }

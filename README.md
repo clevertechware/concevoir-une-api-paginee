@@ -104,6 +104,21 @@ pagination continue sans rien remarquer.
 curl "http://localhost:8081/v1/transactions?account_id=42&limit=3&cursor=$NEXT"
 ```
 
+Relevé sur les deux serveurs lancés côte à côte, `account_id=42`, `limit=3` :
+
+```text
+page 1  — Go   :8080   9996899, 9995724, 9994722
+page 2  — Java :8081   9992087, 9984810, 9983604   (curseur émis par Go)
+page 3  — Go   :8080   9981250, 9981087, 9978954   (curseur émis par Java)
+```
+
+Neuf lignes strictement décroissantes, sans trou ni doublon, alors que le
+parcours a changé de langage deux fois. Les trois curseurs portent la même
+empreinte de filtres `zJlP3yfvPv8` — celle du vecteur n°2 de
+`spec/cursor-vectors.json`.
+
+C'est ce que veut dire « le curseur est une frontière de contrat ».
+
 ## Tester
 
 ```bash

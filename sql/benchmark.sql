@@ -63,8 +63,8 @@ EXPLAIN (ANALYZE, BUFFERS, COSTS OFF, TIMING OFF)
 SELECT id, account_id, amount_cents, created_at
 FROM transactions
 WHERE account_id = 42
-  AND (timestamptz '2021-01-08 01:47:00+00' IS NULL
-       OR (created_at, id) < (timestamptz '2021-01-08 01:47:00+00', 9500001))
+  AND (timestamptz '2018-03-03 09:47:00+00' IS NULL
+       OR (created_at, id) < (timestamptz '2018-03-03 09:47:00+00', 5000001))
 ORDER BY created_at DESC, id DESC
 LIMIT 20;
 
@@ -80,6 +80,6 @@ LIMIT 20;
 
 SET plan_cache_mode = force_generic_plan;
 EXPLAIN (ANALYZE, BUFFERS, COSTS OFF, TIMING OFF)
-EXECUTE paged (timestamptz '2021-01-08 01:47:00+00', 9500001);
+EXECUTE paged (timestamptz '2018-03-03 09:47:00+00', 5000001);
 RESET plan_cache_mode;
 DEALLOCATE paged;

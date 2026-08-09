@@ -53,6 +53,39 @@ make seed ROWS=100000       # … ou de quoi boucler vite
 make bench                  # rejoue les mesures de l'article
 ```
 
+### Ce que `make bench` donne
+
+Relevé sur un Mac de développement, PostgreSQL 18.4 en conteneur, `shared_buffers`
+à ses 128 Mo par défaut, 10 000 000 de lignes. Les temps absolus dépendent de la
+machine ; les rapports entre profondeurs, non.
+
+| Requête | Lignes remontées sous le `Limit` | Blocs lus | Temps |
+|---|---:|---:|---:|
+| `LIMIT 20 OFFSET 0` | 20 | 4 | 0,034 ms |
+| `LIMIT 20 OFFSET 500 000` | 500 020 | 8 398 | 37,7 ms |
+| `LIMIT 20 OFFSET 5 000 000` | 5 000 020 | 83 952 | 369 ms |
+| keyset, profondeur 500 000 | 20 | 5 | 0,030 ms |
+| keyset, profondeur 5 000 000 | 20 | 5 | 0,029 ms |
+| `COUNT(*)` | 10 000 000 | 99 405 | 111 ms |
+
+Le `OFFSET` à 5 000 000 affiche aussi un `written` non nul : la requête ne modifie
+rien, mais elle évince tellement de pages du cache qu'il faut en écrire sur disque
+pour lui faire de la place. Une pagination profonde ne se contente pas d'être
+lente pour celui qui la lance, elle vide le cache des autres.
+
+Et le piège de la requête unique, en plan générique :
+
+```text
+Index Scan using idx_txn_acct on transactions (actual rows=20.00 loops=1)
+  Index Cond: (account_id = 42)
+  Filter: (($1 IS NULL) OR (ROW(created_at, id) < ROW($1, $2)))
+  Rows Removed by Filter: 2451
+```
+
+La borne est passée sous `Filter`. On a réinventé l'`OFFSET`, avec la syntaxe du
+keyset en prime. C'est pour ça que les deux implémentations émettent deux
+requêtes distinctes.
+
 Puis, au choix :
 
 ```bash

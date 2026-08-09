@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: concevoir-une-api-paginee
+  datasource:
+    url: jdbc:postgresql://localhost:5432/pagination
+    username: postgres
+    password: pagination
+    hikari:
+      # The API never writes: the schema and the dataset are shared infrastructure, applied by the
+      # container and by `make seed`.
+      read-only: true
+      maximum-pool-size: 10
+  jackson:
+    property-naming-strategy: SNAKE_CASE
+    # `page.next` is null at the end of the walk and the client reads that null: never drop it.
+    default-property-inclusion: always
+
+pagination:
+  cursor:
+    # Demo key. In production it comes from the configuration store; rotating it invalidates every
+    # cursor in flight, which is exactly what a signature is for.
+    key: concevoir-une-api-paginee-dev-key
+    time-to-live: 72h
+
+logging:
+  level:
+    root: INFO

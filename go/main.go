@@ -16,9 +16,9 @@ import (
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/handler"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/postgres"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/service"
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 )
 
 func main() {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/cursor"
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 )
 
 // Transactions serves the four listing endpoints. It owns the cursor: the

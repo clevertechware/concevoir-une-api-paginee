@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 // Pinger reports whether a backing service is reachable.

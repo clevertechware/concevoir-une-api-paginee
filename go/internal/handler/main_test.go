@@ -8,12 +8,12 @@ import (
 	"os"
 	"testing"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/require"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 func TestMain(m *testing.M) {

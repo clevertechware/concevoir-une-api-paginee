@@ -19,7 +19,7 @@ là-bas, et `../spec/cursor-vectors.json` le vérifie des deux côtés.
 
 ## Stack
 
-Go 1.26, gin, pgx/v5 (+pgxpool), koanf, slog via `internal/logger`, testify +
+Go 1.26, gin, pgx/v5 (+pgxpool), koanf, slog via `pkg/logger`, testify +
 testcontainers-go. PostgreSQL 18.
 
 Pas de golang-migrate : le schéma (`../sql/01-schema.sql`) est de l'infra

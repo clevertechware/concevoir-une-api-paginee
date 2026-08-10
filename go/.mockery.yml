@@ -1,0 +1,18 @@
+template: testify
+
+# Mocks live beside the interface they implement, in a `mocks` sub-package, so a
+# consumer package never has to import its own test doubles.
+dir: "{{.InterfaceDir}}/mocks"
+pkgname: mocks
+filename: "{{.InterfaceName | snakecase}}.go"
+structname: "{{.InterfaceName | firstUpper}}"
+force-file-write: true
+
+packages:
+  github.com/clevertechware/concevoir-une-api-paginee-golang/internal/handler:
+    interfaces:
+      transactionService:
+      Pinger:
+  github.com/clevertechware/concevoir-une-api-paginee-golang/internal/service:
+    interfaces:
+      transactionRepository:

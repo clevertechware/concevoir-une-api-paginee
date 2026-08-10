@@ -1,4 +1,4 @@
-.PHONY: help build run test test-unit test-integration explain vet fmt tidy clean
+.PHONY: help build run test test-unit test-integration explain mocks vet fmt tidy clean
 
 BIN := bin
 
@@ -22,6 +22,9 @@ test-integration: ## Run the testcontainers-backed tests
 
 explain: ## Show only the plan measurements, with their numbers
 	go test -v -count=1 -run 'TestRepositorySuite/TestExplain' ./internal/postgres/...
+
+mocks: ## Regenerate the testify mocks declared in .mockery.yml
+	go tool mockery
 
 vet: ## Run go vet
 	go vet ./...

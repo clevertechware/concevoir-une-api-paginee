@@ -118,8 +118,7 @@ func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
 }
 
 // TestDecode_ExpiresOnTTL is why the contract answers 410 rather than 400: the
-// token is perfectly valid, it just points at a position that is too old to
-// resume from.
+// token is perfectly valid, it just points at a position that is too old to resume from.
 func TestDecode_ExpiresOnTTL(t *testing.T) {
 	token := Encode(testCursor(), testKey)
 

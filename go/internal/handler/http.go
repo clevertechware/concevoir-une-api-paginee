@@ -23,14 +23,19 @@ type HTTPServer struct {
 	server          *http.Server
 	router          *gin.Engine
 	logger          logger.Logger
-	db              Pinger
+	healthPinger    Pinger
 	transactions    *HTTPTransactionHandler
 	shutdownTimeout time.Duration
 }
 
 // NewHTTPServer builds the server and registers every route. Routes are wired
 // here rather than in an exported method the caller has to remember to call.
-func NewHTTPServer(cfg config.Server, log logger.Logger, db Pinger, transactions *HTTPTransactionHandler) *HTTPServer {
+func NewHTTPServer(
+	cfg config.Server,
+	log logger.Logger,
+	pinger Pinger,
+	transactions *HTTPTransactionHandler,
+) *HTTPServer {
 	gin.SetMode(ginMode(cfg.Mode))
 
 	router := gin.New()
@@ -39,7 +44,7 @@ func NewHTTPServer(cfg config.Server, log logger.Logger, db Pinger, transactions
 	s := &HTTPServer{
 		router:          router,
 		logger:          log,
-		db:              db,
+		healthPinger:    pinger,
 		transactions:    transactions,
 		shutdownTimeout: cfg.ShutdownTimeout,
 		server: &http.Server{
@@ -113,7 +118,7 @@ func (s *HTTPServer) health(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
 	defer cancel()
 
-	if err := s.db.Ping(ctx); err != nil {
+	if err := s.healthPinger.Ping(ctx); err != nil {
 		s.logger.ErrorContext(ctx, "health check failed", "error", err)
 		c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unavailable"})
 		return

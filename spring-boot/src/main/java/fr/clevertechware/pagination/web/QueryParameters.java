@@ -1,6 +1,5 @@
 package fr.clevertechware.pagination.web;
 
-import fr.clevertechware.pagination.domain.ExportQuery;
 import fr.clevertechware.pagination.domain.ListQuery;
 import fr.clevertechware.pagination.domain.SortOrder;
 
@@ -59,17 +58,6 @@ final class QueryParameters {
                     "invalid_page", "page must be an integer greater than or equal to 1");
         }
         return page;
-    }
-
-    static long afterId(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return ExportQuery.FROM_THE_BEGINNING;
-        }
-        long afterId = parseLong(raw, "invalid_after_id", "after_id must be a positive integer");
-        if (afterId < 0) {
-            throw new InvalidParameterException("invalid_after_id", "after_id must be a positive integer");
-        }
-        return afterId;
     }
 
     static String cursor(String raw) {

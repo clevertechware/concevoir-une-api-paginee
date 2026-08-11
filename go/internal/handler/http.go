@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 // Pinger reports whether a backing service is reachable.
@@ -30,9 +30,7 @@ type HTTPServer struct {
 
 // NewHTTPServer builds the server and registers every route. Routes are wired
 // here rather than in an exported method the caller has to remember to call.
-func NewHTTPServer(
-	cfg config.Server, log logger.Logger, db Pinger, transactions *HTTPTransactionHandler,
-) *HTTPServer {
+func NewHTTPServer(cfg config.Server, log logger.Logger, db Pinger, transactions *HTTPTransactionHandler) *HTTPServer {
 	gin.SetMode(ginMode(cfg.Mode))
 
 	router := gin.New()
@@ -60,25 +58,21 @@ func NewHTTPServer(
 func (s *HTTPServer) setupRoutes() {
 	s.router.GET("/healthz", s.health)
 
-	v1 := s.router.Group("/v1/transactions")
+	v1Transactions := s.router.Group("/v1/transactions")
 	{
 		// ✅ The recommended list: opaque signed cursor, cost independent of depth.
-		v1.GET("", s.transactions.list)
+		v1Transactions.GET("", s.transactions.list)
 
 		// ❌ The counter-example: same data, same order, priced by depth. Here to
 		// be measured against the one above, not to be reused.
-		v1.GET("/offset", s.transactions.listByOffset)
-
-		// ✅ The full walk, ordered on the immutable key: every row present when
-		// the walk started is returned exactly once.
-		v1.GET("/export", s.transactions.export)
+		v1Transactions.GET("/offset", s.transactions.listByOffset)
 
 		// The honest answer to "give me a total": an estimate, labelled as one.
-		v1.GET("/count-estimate", s.transactions.countEstimate)
+		v1Transactions.GET("/count-estimate", s.transactions.countEstimate)
 	}
 }
 
-// Run serves until ctx is cancelled, then drains in-flight requests.
+// Run serves until ctx is canceled, then drains in-flight requests.
 func (s *HTTPServer) Run(ctx context.Context) error {
 	errCh := make(chan error, 1)
 

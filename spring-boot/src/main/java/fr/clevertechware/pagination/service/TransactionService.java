@@ -5,8 +5,6 @@ import fr.clevertechware.pagination.cursor.CursorCodec;
 import fr.clevertechware.pagination.cursor.FilterFingerprint;
 import fr.clevertechware.pagination.cursor.InvalidCursorException;
 import fr.clevertechware.pagination.domain.CursorFilterMismatchException;
-import fr.clevertechware.pagination.domain.ExportPage;
-import fr.clevertechware.pagination.domain.ExportQuery;
 import fr.clevertechware.pagination.domain.KeysetPage;
 import fr.clevertechware.pagination.domain.ListQuery;
 import fr.clevertechware.pagination.domain.OffsetPage;
@@ -49,15 +47,6 @@ public class TransactionService {
         List<Transaction> rows = hasMore ? fetched.subList(0, query.size()) : fetched;
 
         return new OffsetPage(rows, query.page(), query.size(), hasMore);
-    }
-
-    public ExportPage export(ExportQuery query) {
-        List<Transaction> fetched = repository.findAfterId(query.afterId(), query.limit() + 1);
-        boolean hasMore = fetched.size() > query.limit();
-        List<Transaction> rows = hasMore ? fetched.subList(0, query.limit()) : fetched;
-
-        Long nextAfterId = rows.isEmpty() ? null : rows.getLast().id();
-        return new ExportPage(rows, hasMore ? nextAfterId : null, hasMore);
     }
 
     public long estimatedRowCount() {

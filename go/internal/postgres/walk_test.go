@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/testutil"
 )
 
@@ -99,47 +99,6 @@ func TestOffsetWalk_Drifts(t *testing.T) {
 
 	t.Logf("offset walk over %d rows: %d duplicates, %d rows never returned",
 		walkRows, len(duplicates), len(missing))
-}
-
-// TestExportWalk_DoesNotDrift makes the same point on the strongest ordering
-// available: a strictly increasing, never-updated primary key. Rows inserted
-// during the walk land *after* the reader, so they are simply picked up later,
-// and nothing that existed at the start can be missed.
-func TestExportWalk_DoesNotDrift(t *testing.T) {
-	pg := testutil.Shared(t)
-	testutil.SeedTransactions(t, pg, walkRows, seededAccounts)
-	repository := NewTransactionRepository(pg.Pool, logger.NewNoOpLogger())
-
-	inserter := newHeadInserter(walkRows)
-
-	seen := make([]int64, 0, walkRows)
-	afterID := int64(0)
-
-	for {
-		page, err := repository.Export(t.Context(), afterID, walkPageSize)
-		require.NoError(t, err)
-		if len(page) == 0 {
-			break
-		}
-
-		for _, row := range page {
-			// Stop at the original dataset: everything above walkRows is a row
-			// that did not exist when the walk started.
-			if row.ID > walkRows {
-				continue
-			}
-			seen = append(seen, row.ID)
-		}
-		afterID = page[len(page)-1].ID
-		if afterID >= walkRows {
-			break
-		}
-
-		inserter.insert(t, pg, insertsPerPage)
-	}
-
-	assert.Empty(t, duplicatesIn(seen), "an export walk must not return a row twice")
-	assert.Empty(t, missingFrom(seen, walkRows), "an export walk must not skip a row")
 }
 
 // TestKeysetWalk_NeedsTheTieBreakerOnIdenticalTimestamps is why the sort key

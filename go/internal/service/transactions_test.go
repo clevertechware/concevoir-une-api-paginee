@@ -7,12 +7,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/config"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/service/mocks"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/cursor"
 )
 
@@ -22,55 +24,7 @@ var (
 	errRepo   = errors.New("database is on fire")
 )
 
-// stubRepository records what the service asked for and replays what it was
-// told to return. Hand-written rather than generated: the port has five
-// methods, and the assertions are about the arguments, not the call graph.
-type stubRepository struct {
-	rows []domain.Transaction
-	err  error
-
-	firstPageCalls int
-	nextPageCalls  int
-	gotQuery       domain.ListQuery
-	gotBound       domain.Bound
-	gotLimit       int
-	gotOffset      int
-	gotAfterID     int64
-}
-
-func (r *stubRepository) FirstPage(
-	_ context.Context, q domain.ListQuery, limit int,
-) ([]domain.Transaction, error) {
-	r.firstPageCalls++
-	r.gotQuery, r.gotLimit = q, limit
-	return r.rows, r.err
-}
-
-func (r *stubRepository) NextPage(
-	_ context.Context, q domain.ListQuery, after domain.Bound, limit int,
-) ([]domain.Transaction, error) {
-	r.nextPageCalls++
-	r.gotQuery, r.gotBound, r.gotLimit = q, after, limit
-	return r.rows, r.err
-}
-
-func (r *stubRepository) OffsetPage(
-	_ context.Context, _ int64, offset, limit int,
-) ([]domain.Transaction, error) {
-	r.gotOffset, r.gotLimit = offset, limit
-	return r.rows, r.err
-}
-
-func (r *stubRepository) Export(_ context.Context, afterID int64, limit int) ([]domain.Transaction, error) {
-	r.gotAfterID, r.gotLimit = afterID, limit
-	return r.rows, r.err
-}
-
-func (r *stubRepository) CountEstimate(context.Context) (int64, error) {
-	return 10_000_000, r.err
-}
-
-func newService(t *testing.T, repository *stubRepository) *Transactions {
+func newService(t *testing.T, repository transactionRepository) *Transactions {
 	t.Helper()
 
 	s := NewTransactions(repository, config.Cursor{Key: testKey, TTL: 72 * time.Hour}, logger.NewNoOpLogger())
@@ -96,7 +50,9 @@ var descendingQuery = domain.ListQuery{AccountID: 42, Sort: domain.SortCreatedAt
 
 // TestList_AsksForOneRowMoreThanThePageAndDropsIt is the has_more mechanism of
 // the article: the extra row is the whole cost of knowing whether a next page
-// exists, and it never leaves the server.
+// exists, and it never leaves the server. The limit+1 lives in the expectation
+// rather than in an assertion, so a service that stopped adding it would never
+// reach the repository at all.
 func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 	tests := []struct {
 		name        string
@@ -114,13 +70,15 @@ func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := &stubRepository{rows: transactions(tt.available)}
-			s := newService(t, repository)
+			repository := mocks.NewTransactionRepository(t)
+			repository.EXPECT().
+				FirstPage(mock.Anything, descendingQuery, tt.limit+1).
+				Return(transactions(tt.available), nil).
+				Once()
 
-			page, err := s.List(t.Context(), descendingQuery, tt.limit, "")
+			page, err := newService(t, repository).List(t.Context(), descendingQuery, tt.limit, "")
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.limit+1, repository.gotLimit, "the repository must be asked for limit + 1")
 			assert.Len(t, page.Transactions, tt.wantRows)
 			assert.Equal(t, tt.wantHasMore, page.HasMore)
 			assert.Equal(t, tt.wantNext, page.Next != "", "next is the only authority on the end of the walk")
@@ -130,40 +88,61 @@ func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 
 // TestList_UsesTheFirstPageQueryWithoutACursor pins the article's central
 // point: which of the two statements runs is decided here, once, on the
-// presence of a cursor. There is no third path where a bound is passed as NULL.
+// presence of a cursor. There is no third path where a bound is passed as NULL,
+// and the mock has no NextPage expectation to prove it.
 func TestList_UsesTheFirstPageQueryWithoutACursor(t *testing.T) {
-	repository := &stubRepository{rows: transactions(5)}
-	s := newService(t, repository)
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().
+		FirstPage(mock.Anything, descendingQuery, 21).
+		Return(transactions(5), nil).
+		Once()
 
-	_, err := s.List(t.Context(), descendingQuery, 20, "")
+	_, err := newService(t, repository).List(t.Context(), descendingQuery, 20, "")
 
 	require.NoError(t, err)
-	assert.Equal(t, 1, repository.firstPageCalls)
-	assert.Equal(t, 0, repository.nextPageCalls)
 }
 
 func TestList_UsesTheNextPageQueryWithACursor(t *testing.T) {
-	repository := &stubRepository{rows: transactions(21)}
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().
+		FirstPage(mock.Anything, descendingQuery, 21).
+		Return(transactions(21), nil).
+		Once()
+
+	var gotBound domain.Bound
+	repository.EXPECT().
+		NextPage(mock.Anything, descendingQuery, mock.Anything, 21).
+		Run(func(_ context.Context, _ domain.ListQuery, after domain.Bound, _ int) { gotBound = after }).
+		Return(nil, nil).
+		Once()
+
 	s := newService(t, repository)
 
 	first, err := s.List(t.Context(), descendingQuery, 20, "")
 	require.NoError(t, err)
 	require.NotEmpty(t, first.Next)
 
-	second, err := s.List(t.Context(), descendingQuery, 20, first.Next)
+	_, err = s.List(t.Context(), descendingQuery, 20, first.Next)
 	require.NoError(t, err)
-	require.NotNil(t, second)
 
-	assert.Equal(t, 1, repository.nextPageCalls)
 	last := first.Transactions[len(first.Transactions)-1]
-	assert.Equal(t, last.ID, repository.gotBound.ID, "the bound is the last row handed to the client")
-	assert.True(t, last.CreatedAt.Equal(repository.gotBound.CreatedAt))
+	assert.Equal(t, last.ID, gotBound.ID, "the bound is the last row handed to the client")
+	assert.True(t, last.CreatedAt.Equal(gotBound.CreatedAt))
 }
 
 // TestList_RejectsACursorThatDoesNotBelongToTheRequest covers two claims at
 // once: a token is unforgeable, and it is bound to the filters that produced it.
 func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
-	repository := &stubRepository{rows: transactions(21)}
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().
+		FirstPage(mock.Anything, mock.Anything, 21).
+		Return(transactions(21), nil).
+		Once()
+	repository.EXPECT().
+		NextPage(mock.Anything, descendingQuery, mock.Anything, 21).
+		Return(transactions(21), nil).
+		Once()
+
 	s := newService(t, repository)
 
 	issued, err := s.List(t.Context(), descendingQuery, 20, "")
@@ -236,7 +215,16 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 // The same token is accepted or refused purely on how much time has passed, so
 // the clock is the only thing that moves between the two cases.
 func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
-	repository := &stubRepository{rows: transactions(21)}
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().
+		FirstPage(mock.Anything, descendingQuery, 21).
+		Return(transactions(21), nil).
+		Once()
+	repository.EXPECT().
+		NextPage(mock.Anything, descendingQuery, mock.Anything, 21).
+		Return(transactions(21), nil).
+		Twice()
+
 	s := newService(t, repository)
 
 	issued, err := s.List(t.Context(), descendingQuery, 20, "")
@@ -269,9 +257,10 @@ func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
 }
 
 func TestList_PropagatesRepositoryFailures(t *testing.T) {
-	s := newService(t, &stubRepository{err: errRepo})
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().FirstPage(mock.Anything, descendingQuery, 21).Return(nil, errRepo).Once()
 
-	_, err := s.List(t.Context(), descendingQuery, 20, "")
+	_, err := newService(t, repository).List(t.Context(), descendingQuery, 20, "")
 
 	assert.ErrorIs(t, err, errRepo)
 }
@@ -290,46 +279,26 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			repository := &stubRepository{rows: transactions(tt.size + 1)}
-			s := newService(t, repository)
+			repository := mocks.NewTransactionRepository(t)
+			repository.EXPECT().
+				OffsetPage(mock.Anything, int64(0), tt.wantOffset, tt.size+1).
+				Return(transactions(tt.size+1), nil).
+				Once()
 
-			page, err := s.ListByOffset(t.Context(), 0, tt.page, tt.size)
+			page, err := newService(t, repository).ListByOffset(t.Context(), 0, tt.page, tt.size)
 
 			require.NoError(t, err)
-			assert.Equal(t, tt.wantOffset, repository.gotOffset)
-			assert.Equal(t, tt.size+1, repository.gotLimit)
 			assert.Equal(t, tt.page, page.Page)
 			assert.True(t, page.HasMore)
 		})
 	}
 }
 
-func TestExport_ResumesFromTheLastIdentifierItReturned(t *testing.T) {
-	repository := &stubRepository{rows: transactions(11)}
-	s := newService(t, repository)
-
-	page, err := s.Export(t.Context(), 0, 10)
-
-	require.NoError(t, err)
-	assert.Equal(t, int64(0), repository.gotAfterID, "an absent after_id starts the walk")
-	assert.Equal(t, 11, repository.gotLimit)
-	assert.Len(t, page.Transactions, 10)
-	assert.True(t, page.HasMore)
-	assert.Equal(t, page.Transactions[9].ID, page.NextAfterID)
-
-	repository.rows = transactions(3)
-	page, err = s.Export(t.Context(), page.NextAfterID, 10)
-
-	require.NoError(t, err)
-	assert.Equal(t, int64(10), repository.gotAfterID)
-	assert.False(t, page.HasMore)
-	assert.Zero(t, page.NextAfterID, "the walk is over, there is nothing to resume from")
-}
-
 func TestCountEstimate_ReturnsThePlannerEstimate(t *testing.T) {
-	s := newService(t, &stubRepository{})
+	repository := mocks.NewTransactionRepository(t)
+	repository.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
 
-	estimate, err := s.CountEstimate(t.Context())
+	estimate, err := newService(t, repository).CountEstimate(t.Context())
 
 	require.NoError(t, err)
 	assert.Equal(t, int64(10_000_000), estimate)

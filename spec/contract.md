@@ -75,22 +75,6 @@ Réponse `200` :
 Toujours pas de `total` : le `COUNT(*)` coûte 4 000 fois la page. Un endpoint
 séparé l'expose, en estimation assumée (voir plus bas).
 
-### `GET /v1/transactions/export` — le parcours complet
-
-Trié sur la clé immuable, sans tie-breaker à gérer, avec la garantie la plus
-forte : chaque ligne présente au début du parcours est vue une fois et une seule.
-
-| Paramètre  | Défaut | Règle |
-|------------|--------|-------|
-| `after_id` | —      | `bigint`, exclusif. Absent = début |
-| `limit`    | `1000` | plafonné à 5000 |
-
-```sql
-SELECT … FROM transactions WHERE id > $1 ORDER BY id LIMIT $2;
-```
-
-Réponse : même enveloppe, `page.next_after_id` (chaîne ou `null`) et `has_more`.
-
 ### `GET /v1/transactions/count-estimate` — le total, assumé comme une estimation
 
 Lit `reltuples` dans `pg_class` plutôt que de compter. Renvoie
@@ -120,7 +104,6 @@ Enveloppe commune :
 | `page` < 1 ou non numérique | `400` | `invalid_page` |
 | `sort` inconnu | `400` | `invalid_sort` |
 | `account_id` non numérique, nul ou négatif | `400` | `invalid_account_id` |
-| `after_id` négatif ou non numérique | `400` | `invalid_after_id` |
 
 Un `limit=0` **n'est pas une erreur** : l'AIP-158 le lit comme « pas de préférence »
 et le serveur applique son défaut. Seule une valeur négative est un bug client. Un

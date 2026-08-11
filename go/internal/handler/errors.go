@@ -4,10 +4,10 @@ import (
 	"errors"
 	"net/http"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/cursor"
 )
 
@@ -65,9 +65,6 @@ func statusFor(err error) (status int, code string) {
 
 	case errors.Is(err, domain.ErrInvalidAccountID):
 		return http.StatusBadRequest, "invalid_account_id"
-
-	case errors.Is(err, domain.ErrInvalidAfterID):
-		return http.StatusBadRequest, "invalid_after_id"
 
 	default:
 		return http.StatusInternalServerError, "internal_error"

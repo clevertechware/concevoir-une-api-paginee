@@ -76,19 +76,6 @@ final class TransactionQueries {
             ORDER BY created_at DESC, id DESC
             LIMIT ? OFFSET ?""".formatted(COLUMNS);
 
-    /**
-     * Parameters: after id, limit.
-     *
-     * <p>No first-page variant here: the walk starts at {@code id > 0} and the primary key is an
-     * identity column, so the beginning of the export is a real bound rather than a null to guard.
-     */
-    static final String EXPORT_PAGE = """
-            SELECT %s
-            FROM transactions
-            WHERE id > ?
-            ORDER BY id
-            LIMIT ?""".formatted(COLUMNS);
-
     /** Planner statistics rather than a count: {@code reltuples} is -1 until the table is analysed. */
     static final String ESTIMATED_ROW_COUNT =
             "SELECT reltuples::bigint FROM pg_class WHERE oid = 'transactions'::regclass";

@@ -1,4 +1,4 @@
-.PHONY: help build run test test-unit test-integration explain vet fmt tidy clean
+.PHONY: help build run test test-unit test-integration explain mocks vet fmt tidy clean
 
 BIN := bin
 
@@ -6,10 +6,10 @@ help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build the API binary
-	go build -o $(BIN)/server ./cmd/server
+	go build -o $(BIN)/server main.go
 
 run: ## Run the API on :8080 (needs `make db-up seed` at the repository root)
-	go run ./cmd/server
+	go run main.go
 
 test: ## Run every test (requires Docker)
 	go test -count=1 ./...
@@ -22,6 +22,9 @@ test-integration: ## Run the testcontainers-backed tests
 
 explain: ## Show only the plan measurements, with their numbers
 	go test -v -count=1 -run 'TestRepositorySuite/TestExplain' ./internal/postgres/...
+
+mocks: ## Regenerate the testify mocks declared in .mockery.yml
+	go tool mockery
 
 vet: ## Run go vet
 	go vet ./...

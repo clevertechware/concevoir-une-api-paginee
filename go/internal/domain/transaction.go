@@ -75,11 +75,3 @@ type OffsetPage struct {
 	Size         int
 	HasMore      bool
 }
-
-// ExportPage is one slice of a full walk ordered by the immutable key.
-// NextAfterID is 0 once the walk is over.
-type ExportPage struct {
-	Transactions []Transaction
-	NextAfterID  int64
-	HasMore      bool
-}

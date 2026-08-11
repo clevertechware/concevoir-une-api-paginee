@@ -83,14 +83,6 @@ public class TransactionRepository {
                 .list();
     }
 
-    public List<Transaction> findAfterId(long afterId, int limit) {
-        return jdbcClient.sql(TransactionQueries.EXPORT_PAGE)
-                .param(afterId)
-                .param(limit)
-                .query(TRANSACTION_MAPPER)
-                .list();
-    }
-
     public long estimatedRowCount() {
         Long estimate = jdbcClient.sql(TransactionQueries.ESTIMATED_ROW_COUNT)
                 .query(Long.class)

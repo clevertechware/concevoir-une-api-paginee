@@ -19,7 +19,7 @@ là-bas, et `../spec/cursor-vectors.json` le vérifie des deux côtés.
 
 ## Stack
 
-Go 1.26, gin, pgx/v5 (+pgxpool), koanf, slog via `internal/logger`, testify +
+Go 1.26, gin, pgx/v5 (+pgxpool), koanf, slog via `pkg/logger`, testify +
 testcontainers-go. PostgreSQL 18.
 
 Pas de golang-migrate : le schéma (`../sql/01-schema.sql`) est de l'infra
@@ -66,12 +66,19 @@ décision `has_more` se prend, donc c'est là qu'on doit la voir.
 make test-unit          # rapide, sans Docker (-short saute les conteneurs)
 make test-integration   # testcontainers
 make explain            # uniquement les mesures de plan, avec leurs chiffres
+make mocks              # régénère les doubles après un changement de port
 ```
 
 - Unitaires : table-driven, `t.Context()`, `logger.NewNoOpLogger()`. Les doubles
-  sont **écrits à la main** (`stubRepository`, `stubService`) plutôt que générés :
-  les ports font quatre ou cinq méthodes et les assertions portent sur les
-  arguments, pas sur le graphe d'appels. Pas de mockery ici.
+  sont **générés par mockery** (`go tool mockery`, configuré dans `.mockery.yml`)
+  et vivent dans un sous-paquet `mocks/` à côté du port qu'ils implémentent :
+  `internal/service/mocks`, `internal/handler/mocks`. Ils sont commités ; après
+  avoir touché à une interface, lancer `make mocks`.
+- Les attentes portent sur les arguments (`EXPECT().FirstPage(mock.Anything,
+  query, limit+1)`) plutôt que sur des champs capturés, et un port construit
+  avec `mocks.NewX(t)` **échoue le test sur un appel non attendu**. C'est ce qui
+  prouve, sans assertion supplémentaire, qu'une requête rejetée en 400 n'atteint
+  jamais le service, et qu'une première page n'appelle jamais `NextPage`.
 - Intégration : un conteneur par package via `testutil.RunWithPostgres` dans
   `TestMain`. L'application ne fait que lire, donc `RepositorySuite` sème une
   fois dans `SetupSuite` et ne s'isole pas. Les tests qui écrivent (`walk_test.go`)

@@ -6,20 +6,19 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/gin-gonic/gin"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 type transactionService interface {
 	List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error)
 	ListByOffset(ctx context.Context, accountID int64, page, size int) (domain.OffsetPage, error)
-	Export(ctx context.Context, afterID int64, limit int) (domain.ExportPage, error)
 	CountEstimate(ctx context.Context) (int64, error)
 }
 
-// HTTPTransactionHandler exposes the four listing endpoints of the contract.
+// HTTPTransactionHandler exposes the three listing endpoints of the contract.
 type HTTPTransactionHandler struct {
 	service transactionService
 	logger  logger.Logger
@@ -63,16 +62,6 @@ type offsetPageResponse struct {
 type offsetListResponse struct {
 	Data []transactionResponse `json:"data"`
 	Page offsetPageResponse    `json:"page"`
-}
-
-type exportPageResponse struct {
-	NextAfterID *string `json:"next_after_id"`
-	HasMore     bool    `json:"has_more"`
-}
-
-type exportListResponse struct {
-	Data []transactionResponse `json:"data"`
-	Page exportPageResponse    `json:"page"`
 }
 
 type countEstimateResponse struct {
@@ -148,37 +137,6 @@ func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
 	})
 }
 
-// export serves GET /v1/transactions/export, the full walk on the immutable key.
-func (h *HTTPTransactionHandler) export(c *gin.Context) {
-	afterID, err := int64Param(c, "after_id", domain.ErrInvalidAfterID)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	limit, err := limitParam(c, "limit", domain.DefaultExportLimit, domain.MaxExportLimit)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	page, err := h.service.Export(c.Request.Context(), afterID, limit)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	var next *string
-	if page.NextAfterID > 0 {
-		next = nullable(strconv.FormatInt(page.NextAfterID, 10))
-	}
-
-	c.JSON(http.StatusOK, exportListResponse{
-		Data: transactionsResponse(page.Transactions),
-		Page: exportPageResponse{NextAfterID: next, HasMore: page.HasMore},
-	})
-}
-
 // countEstimate serves GET /v1/transactions/count-estimate.
 func (h *HTTPTransactionHandler) countEstimate(c *gin.Context) {
 	estimate, err := h.service.CountEstimate(c.Request.Context())
@@ -240,21 +198,17 @@ func pageParam(c *gin.Context) (int, error) {
 	return value, nil
 }
 
+// accountIDParam reads the positive bigint filter. Absent means 0, which is what
+// the filter fingerprint uses for "no value".
 func accountIDParam(c *gin.Context) (int64, error) {
-	return int64Param(c, "account_id", domain.ErrInvalidAccountID)
-}
-
-// int64Param reads a positive bigint query parameter. Absent means 0, which is
-// what both the filter fingerprint and the export walk use for "no value".
-func int64Param(c *gin.Context, name string, invalid error) (int64, error) {
-	raw := c.Query(name)
+	raw := c.Query("account_id")
 	if raw == "" {
 		return 0, nil
 	}
 
 	value, err := strconv.ParseInt(raw, 10, 64)
 	if err != nil || value <= 0 {
-		return 0, invalid
+		return 0, domain.ErrInvalidAccountID
 	}
 	return value, nil
 }

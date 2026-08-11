@@ -11,12 +11,11 @@ import (
 	"strings"
 	"time"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/knadh/koanf/parsers/yaml"
 	"github.com/knadh/koanf/providers/env/v2"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
-
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 const (
@@ -32,7 +31,7 @@ const (
 type Server struct {
 	Host string `koanf:"host"`
 	Port int    `koanf:"port"`
-	// Mode is the gin mode: debug, release or test.
+	// Mode is the gin mode: debug, release, or test.
 	Mode string `koanf:"mode"`
 	// ShutdownTimeout bounds how long in-flight requests get to finish.
 	ShutdownTimeout time.Duration `koanf:"shutdown_timeout"`

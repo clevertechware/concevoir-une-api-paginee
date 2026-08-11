@@ -4,11 +4,11 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/domain"
-	"github.com/clevertechware/concevoir-une-api-paginee-golang/internal/logger"
 )
 
 // TransactionRepository reads transactions. Read-only by design: the schema is
@@ -28,8 +28,8 @@ func NewTransactionRepository(pool *pgxpool.Pool, log logger.Logger) *Transactio
 	return &TransactionRepository{pool: pool, logger: log}
 }
 
-// FirstPage returns the head of a keyset walk. No cursor, so no bound at all —
-// not a bound neutralised by an IS NULL.
+// FirstPage returns the head of a keyset walk.
+// No cursor, so no bound at all because not a bound neutralized by an IS NULL.
 func (r *TransactionRepository) FirstPage(
 	ctx context.Context, q domain.ListQuery, limit int,
 ) ([]domain.Transaction, error) {
@@ -64,18 +64,6 @@ func (r *TransactionRepository) OffsetPage(
 		return r.query(ctx, offsetPageByAccount, accountID, limit, offset)
 	}
 	return r.query(ctx, offsetPage, limit, offset)
-}
-
-// Export returns a slice of the full walk, ordered by the immutable key.
-// An afterID of 0 starts the walk: the identity column begins at 1, so no real
-// row can carry it.
-func (r *TransactionRepository) Export(
-	ctx context.Context, afterID int64, limit int,
-) ([]domain.Transaction, error) {
-	if afterID > 0 {
-		return r.query(ctx, exportNextPage, afterID, limit)
-	}
-	return r.query(ctx, exportFirstPage, limit)
 }
 
 // CountEstimate returns the planner's row estimate for the table.

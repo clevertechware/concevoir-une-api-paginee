@@ -1,6 +1,5 @@
 package fr.clevertechware.pagination.web;
 
-import fr.clevertechware.pagination.domain.ExportQuery;
 import fr.clevertechware.pagination.domain.ListQuery;
 import fr.clevertechware.pagination.domain.SortOrder;
 import org.junit.jupiter.api.Test;
@@ -83,11 +82,6 @@ class QueryParametersTest {
     @Test
     void treatsAnAbsentAccountIdAsTheSameZeroTheFingerprintUses() {
         assertThat(QueryParameters.accountId(null)).isEqualTo(ListQuery.NO_ACCOUNT_FILTER);
-    }
-
-    @Test
-    void treatsAnAbsentAfterIdAsTheStartOfTheExportWalk() {
-        assertThat(QueryParameters.afterId(null)).isEqualTo(ExportQuery.FROM_THE_BEGINNING);
     }
 
     @Test

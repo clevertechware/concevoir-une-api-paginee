@@ -294,34 +294,6 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 	}
 }
 
-func TestExport_ResumesFromTheLastIdentifierItReturned(t *testing.T) {
-	repository := mocks.NewTransactionRepository(t)
-	repository.EXPECT().
-		Export(mock.Anything, int64(0), 11).
-		Return(transactions(11), nil).
-		Once()
-
-	s := newService(t, repository)
-
-	page, err := s.Export(t.Context(), 0, 10)
-
-	require.NoError(t, err)
-	assert.Len(t, page.Transactions, 10)
-	assert.True(t, page.HasMore)
-	assert.Equal(t, page.Transactions[9].ID, page.NextAfterID)
-
-	repository.EXPECT().
-		Export(mock.Anything, page.NextAfterID, 11).
-		Return(transactions(3), nil).
-		Once()
-
-	page, err = s.Export(t.Context(), page.NextAfterID, 10)
-
-	require.NoError(t, err)
-	assert.False(t, page.HasMore)
-	assert.Zero(t, page.NextAfterID, "the walk is over, there is nothing to resume from")
-}
-
 func TestCountEstimate_ReturnsThePlannerEstimate(t *testing.T) {
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()

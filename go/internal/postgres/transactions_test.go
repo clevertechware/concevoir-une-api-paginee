@@ -109,21 +109,6 @@ func (s *RepositorySuite) TestNextPage_ReturnsNothingPastTheLastRow() {
 	assert.Empty(t, rows)
 }
 
-// TestExport_WalksTheImmutableKeyWithoutATieBreaker is the strongest guarantee
-// of the article: ordered on a strictly increasing, never-updated primary key,
-// every row present when the walk started comes back exactly once.
-func (s *RepositorySuite) TestExport_WalksTheImmutableKeyWithoutATieBreaker() {
-	t := s.T()
-
-	first, err := s.repository.Export(t.Context(), 0, 5)
-	require.NoError(t, err)
-	assert.Equal(t, []int64{1, 2, 3, 4, 5}, idsOf(first))
-
-	second, err := s.repository.Export(t.Context(), first[len(first)-1].ID, 5)
-	require.NoError(t, err)
-	assert.Equal(t, []int64{6, 7, 8, 9, 10}, idsOf(second))
-}
-
 func (s *RepositorySuite) TestOffsetPage_ReturnsTheSameRowsAsTheKeysetOnAStillTable() {
 	t := s.T()
 	query := domain.ListQuery{Sort: domain.SortCreatedAtDesc}
@@ -175,8 +160,6 @@ func (s *RepositorySuite) TestQueries_AreOneStatementPerCaseAndNeverShareABounde
 		"ascending next page":              ascendingQueries.nextPage,
 		"ascending first page by account":  ascendingQueries.firstPageByAccount,
 		"ascending next page by account":   ascendingQueries.nextPageByAccount,
-		"export first page":                exportFirstPage,
-		"export next page":                 exportNextPage,
 	} {
 		t.Run(name, func(t *testing.T) {
 			assert.NotContains(t, query, "IS NULL")

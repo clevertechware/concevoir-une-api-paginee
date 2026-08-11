@@ -39,7 +39,6 @@ curseur opaque, en une commande.
 |---|---|
 | `GET /v1/transactions` | La pagination keyset recommandée : curseur opaque signé, coût indépendant de la profondeur |
 | `GET /v1/transactions/offset` | Le contre-exemple, pour être mesuré à côté — pas pour être réutilisé |
-| `GET /v1/transactions/export` | Le parcours complet sur la clé immuable : chaque ligne présente au départ est rendue une fois et une seule |
 | `GET /v1/transactions/count-estimate` | La réponse honnête à « donnez-moi un total » : une estimation, assumée comme telle |
 | `GET /healthz` | L'état du pool |
 
@@ -83,7 +82,6 @@ base de développement et n'ont pas besoin du `make seed` ci-dessus.
 |---|---|
 | Le keyset ne dérive pas | `TestKeysetWalk_DoesNotDrift` — on parcourt 200 lignes en insérant 3 lignes en tête entre chaque page : aucun doublon, aucune ligne sautée |
 | …et l'`OFFSET`, si | `TestOffsetWalk_Drifts` — le même parcours rend 27 doublons et perd 27 lignes, **sans lever la moindre erreur** |
-| Le parcours complet est le plus sûr | `TestExportWalk_DoesNotDrift` — trié sur la clé immuable, les nouvelles lignes arrivent derrière le lecteur |
 | Le coût ne dépend pas de la profondeur | `TestExplain_KeysetCostDoesNotGrowWithDepth` — 12 blocs près du haut, 14 blocs 99 800 lignes plus bas |
 | …contrairement à l'`OFFSET` | `TestExplain_OffsetCostGrowsWithDepth` — 8 blocs à la profondeur 0, 3 434 à la profondeur 99 900 |
 | La borne doit être une `Index Cond` | `TestExplain_NextPageBoundIsAnIndexCond` — sur les trois variantes, la borne positionne le scan et aucune ligne n'est lue pour être jetée |
@@ -118,7 +116,7 @@ cmd/server/              câblage explicite, signal.NotifyContext, arrêt gracie
 internal/
   config/                koanf : application.yaml puis l'environnement
   domain/                entités, tri, bornes de pagination, erreurs de validation
-  handler/               gin, les quatre endpoints, le mapping erreur → statut
+  handler/               gin, les trois endpoints, le mapping erreur → statut
   logger/                slog derrière une interface, pour un logger muet en test
   postgres/              le repository et ses huit requêtes, en lecture seule
   service/               le curseur, le limit + 1, l'aiguillage première/suivante

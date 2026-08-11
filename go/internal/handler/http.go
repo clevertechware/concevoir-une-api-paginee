@@ -67,10 +67,6 @@ func (s *HTTPServer) setupRoutes() {
 		// be measured against the one above, not to be reused.
 		v1Transactions.GET("/offset", s.transactions.listByOffset)
 
-		// ✅ The full walk, ordered on the immutable key: every row present when
-		// the walk started is returned exactly once.
-		v1Transactions.GET("/export", s.transactions.export)
-
 		// The honest answer to "give me a total": an estimate, labelled as one.
 		v1Transactions.GET("/count-estimate", s.transactions.countEstimate)
 	}

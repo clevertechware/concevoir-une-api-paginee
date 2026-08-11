@@ -138,7 +138,7 @@ L'enveloppe, `id` sérialisé en chaîne, `created_at` en RFC 3339 `Z`, l'absenc
 `null` en fin de parcours, le plafonnement de `limit` qui répond `200`, la continuation d'un
 parcours depuis le curseur rendu, et les quatre codes d'erreur du contrat : `400 invalid_cursor`,
 `400 cursor_filter_mismatch`, `410 cursor_expired`, `400 invalid_limit` / `invalid_sort` /
-`invalid_account_id` / `invalid_page`. Plus `/v1/transactions/offset`, `/v1/transactions/export`,
+`invalid_account_id` / `invalid_page`. Plus `/v1/transactions/offset`,
 `/v1/transactions/count-estimate` et `/healthz`.
 
 ## Architecture
@@ -168,7 +168,6 @@ Quelques points que `../spec/contract.md` laisse ouverts, tranchés ici :
   du non numérique, mais une page de zéro ligne ne veut rien dire dans un parcours.
 - `size` invalide sur `/v1/transactions/offset` renvoie `invalid_limit`, le contrat ne nommant pas
   de code propre à ce paramètre.
-- `after_id` invalide renvoie `invalid_after_id`, code absent du tableau du contrat.
 - `account_id` doit être strictement positif ; `0` est la valeur réservée à « pas de filtre » dans
   l'empreinte.
 - `status` est accepté et entre dans l'empreinte des filtres, mais n'atteint pas encore le SQL,

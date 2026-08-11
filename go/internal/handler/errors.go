@@ -66,9 +66,6 @@ func statusFor(err error) (status int, code string) {
 	case errors.Is(err, domain.ErrInvalidAccountID):
 		return http.StatusBadRequest, "invalid_account_id"
 
-	case errors.Is(err, domain.ErrInvalidAfterID):
-		return http.StatusBadRequest, "invalid_after_id"
-
 	default:
 		return http.StatusInternalServerError, "internal_error"
 	}

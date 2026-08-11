@@ -10,7 +10,7 @@ import (
 	"github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger"
 )
 
-// Transactions serves the four listing endpoints. It owns the cursor: the
+// Transactions serves the three listing endpoints. It owns the cursor: the
 // repository never sees a token, and the handler never sees a bound.
 type Transactions struct {
 	repository transactionRepository
@@ -110,26 +110,6 @@ func (s *Transactions) ListByOffset(
 	rows, hasMore := trim(rows, size)
 
 	return domain.OffsetPage{Transactions: rows, Page: page, Size: size, HasMore: hasMore}, nil
-}
-
-// Export returns one slice of the full walk. No signed cursor here: the
-// position is a public primary key, so there is nothing to hide and nothing a
-// client could forge that it could not already ask for outright.
-func (s *Transactions) Export(
-	ctx context.Context, afterID int64, limit int,
-) (domain.ExportPage, error) {
-	rows, err := s.repository.Export(ctx, afterID, limit+1)
-	if err != nil {
-		return domain.ExportPage{}, err
-	}
-
-	rows, hasMore := trim(rows, limit)
-
-	result := domain.ExportPage{Transactions: rows, HasMore: hasMore}
-	if hasMore {
-		result.NextAfterID = rows[len(rows)-1].ID
-	}
-	return result, nil
 }
 
 // CountEstimate returns the planner's row estimate, assumed as an estimate.

@@ -66,18 +66,6 @@ func (r *TransactionRepository) OffsetPage(
 	return r.query(ctx, offsetPage, limit, offset)
 }
 
-// Export returns a slice of the full walk, ordered by the immutable key.
-// An afterID of 0 starts the walk: the identity column begins at 1, so no real
-// row can carry it.
-func (r *TransactionRepository) Export(
-	ctx context.Context, afterID int64, limit int,
-) ([]domain.Transaction, error) {
-	if afterID > 0 {
-		return r.query(ctx, exportNextPage, afterID, limit)
-	}
-	return r.query(ctx, exportFirstPage, limit)
-}
-
 // CountEstimate returns the planner's row estimate for the table.
 //
 // reltuples is -1 on a table that has never been analysed, which means "no

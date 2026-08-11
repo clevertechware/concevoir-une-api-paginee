@@ -7,11 +7,6 @@ const (
 	// DefaultLimit and MaxLimit apply to the keyset and offset endpoints.
 	DefaultLimit = 20
 	MaxLimit     = 100
-
-	// DefaultExportLimit and MaxExportLimit apply to the full walk, which is
-	// consumed by machines and can afford larger slices.
-	DefaultExportLimit = 1000
-	MaxExportLimit     = 5000
 )
 
 // CapLimit clamps a page size instead of rejecting it. A client that asks for

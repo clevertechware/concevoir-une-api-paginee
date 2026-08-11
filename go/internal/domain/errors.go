@@ -17,6 +17,4 @@ var (
 	ErrInvalidSort = errors.New("sort must be created_at:desc or created_at:asc")
 	// ErrInvalidAccountID indicates an account_id parameter that is not a positive integer.
 	ErrInvalidAccountID = errors.New("account_id must be a positive integer")
-	// ErrInvalidAfterID indicates an after_id parameter that is not a positive integer.
-	ErrInvalidAfterID = errors.New("after_id must be a positive integer")
 )

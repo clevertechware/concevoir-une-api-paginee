@@ -122,25 +122,6 @@ const (
 		LIMIT $2 OFFSET $3`
 )
 
-// The full walk. Ordered on the primary key, which is strictly increasing and
-// never updated: one cursor column, no tie-breaker to get wrong, and the
-// strongest guarantee available — every row present when the walk started is
-// returned exactly once. Still two statements, for the same reason as above.
-const (
-	exportFirstPage = `
-		SELECT ` + transactionColumns + `
-		FROM transactions
-		ORDER BY id
-		LIMIT $1`
-
-	exportNextPage = `
-		SELECT ` + transactionColumns + `
-		FROM transactions
-		WHERE id > $1
-		ORDER BY id
-		LIMIT $2`
-)
-
 // countEstimate reads the planner's own row estimate instead of counting.
 // The COUNT(*) it replaces takes 101 ms and 93 457 blocks on the article's
 // dataset, against 0,025 ms for the page it would accompany.

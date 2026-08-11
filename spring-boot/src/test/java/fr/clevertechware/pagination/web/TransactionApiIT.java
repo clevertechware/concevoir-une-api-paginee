@@ -173,21 +173,6 @@ class TransactionApiIT extends AbstractDatabaseTest {
     }
 
     @Test
-    void walksTheExportEndpointOnTheImmutableKeyWithoutATieBreaker() throws Exception {
-        JsonNode firstPage = body(mockMvc.perform(get("/v1/transactions/export").param("limit", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(10))
-                .andExpect(jsonPath("$.page.has_more").value(true))
-                .andReturn());
-
-        String nextAfterId = firstPage.get("page").get("next_after_id").textValue();
-
-        mockMvc.perform(get("/v1/transactions/export").param("after_id", nextAfterId).param("limit", "10"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(Long.toString(Long.parseLong(nextAfterId) + 1)));
-    }
-
-    @Test
     void answersTheTotalAsAnEstimateAndSaysSo() throws Exception {
         mockMvc.perform(get("/v1/transactions/count-estimate"))
                 .andExpect(status().isOk())

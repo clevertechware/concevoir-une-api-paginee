@@ -168,6 +168,8 @@ func (s *RepositorySuite) TestQueries_AreOneStatementPerCaseAndNeverShareABounde
 }
 
 func TestQueriesFor_PicksTheDirectionFromTheSort(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, descendingQueries, queriesFor(domain.SortCreatedAtDesc))
 	assert.Equal(t, ascendingQueries, queriesFor(domain.SortCreatedAtAsc))
 	assert.Equal(t, descendingQueries, queriesFor(""), "an unset sort defaults to descending")

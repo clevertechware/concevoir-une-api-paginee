@@ -20,6 +20,8 @@ import (
 // a 200, not a 400 that only teaches it to retry. The rejected cases set no
 // expectation at all, so reaching the service would fail the test.
 func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -38,6 +40,8 @@ func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
@@ -58,6 +62,8 @@ func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
 }
 
 func TestList_ValidatesTheFilterParameters(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -87,6 +93,8 @@ func TestList_ValidatesTheFilterParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
@@ -109,6 +117,8 @@ func TestList_ValidatesTheFilterParameters(t *testing.T) {
 // TestList_SerialisesTheContractedEnvelope pins the wire format: a string id, a
 // nullable next, no total anywhere.
 func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
 		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -143,6 +153,8 @@ func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
 // TestList_ReportsTheEndOfTheWalkWithANullNext keeps next as the single
 // authority on the end of the walk.
 func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
 		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -159,6 +171,8 @@ func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
 // place: an expired cursor is not a malformed request, and the difference is
 // exactly what tells a client to restart its walk instead of fixing its query.
 func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		err        error
@@ -172,6 +186,8 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			service.EXPECT().
 				List(mock.Anything, mock.Anything, mock.Anything, "whatever").
@@ -189,6 +205,8 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 // TestList_NeverLeaksTheInternalErrorOnA500 keeps table names and query
 // fragments out of a response body.
 func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
 		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
@@ -203,6 +221,8 @@ func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
 }
 
 func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -221,6 +241,8 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
@@ -244,6 +266,8 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 // that really wants a total: the planner's number, labelled as an estimate,
 // instead of a COUNT(*) costing 4 000 times the page it accompanies.
 func TestCountEstimate_AnswersAnEstimateAndSaysSo(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
 
@@ -254,6 +278,8 @@ func TestCountEstimate_AnswersAnEstimateAndSaysSo(t *testing.T) {
 }
 
 func TestHealth_FollowsThePool(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		pingErr    error
@@ -271,6 +297,8 @@ func TestHealth_FollowsThePool(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			db := mocks.NewPinger(t)
 			db.EXPECT().Ping(mock.Anything).Return(tt.pingErr).Once()
 

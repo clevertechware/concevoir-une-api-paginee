@@ -29,6 +29,8 @@ func testCursor() Cursor {
 }
 
 func TestEncodeDecode_PreservesThePosition(t *testing.T) {
+	t.Parallel()
+
 	original := testCursor()
 
 	decoded, err := DecodeAt(Encode(original, testKey), testKey, time.Hour, testEpoch)
@@ -45,6 +47,8 @@ func TestEncodeDecode_PreservesThePosition(t *testing.T) {
 // cannot be forged. Every case answers the same ErrInvalidCursor: telling them
 // apart would tell an attacker which check to work on next.
 func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
+	t.Parallel()
+
 	valid := Encode(testCursor(), testKey)
 
 	tests := []struct {
@@ -111,6 +115,8 @@ func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := DecodeAt(tt.token, tt.key, time.Hour, testEpoch)
 			assert.ErrorIs(t, err, tt.wantErr)
 		})
@@ -120,6 +126,8 @@ func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
 // TestDecode_ExpiresOnTTL is why the contract answers 410 rather than 400: the
 // token is perfectly valid, it just points at a position that is too old to resume from.
 func TestDecode_ExpiresOnTTL(t *testing.T) {
+	t.Parallel()
+
 	token := Encode(testCursor(), testKey)
 
 	tests := []struct {
@@ -153,6 +161,8 @@ func TestDecode_ExpiresOnTTL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := DecodeAt(token, testKey, tt.ttl, tt.now)
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -166,6 +176,8 @@ func TestDecode_ExpiresOnTTL(t *testing.T) {
 // TestFingerprint_DistinguishesEveryFilter is what makes a cursor replayed on
 // another query detectable rather than silently answered.
 func TestFingerprint_DistinguishesEveryFilter(t *testing.T) {
+	t.Parallel()
+
 	base := Filters{AccountID: 42, Status: "SETTLED", Sort: "created_at:desc"}
 
 	tests := []struct {
@@ -180,6 +192,8 @@ func TestFingerprint_DistinguishesEveryFilter(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.NotEqual(t, Fingerprint(base), Fingerprint(tt.other))
 		})
 	}
@@ -191,6 +205,8 @@ func TestFingerprint_DistinguishesEveryFilter(t *testing.T) {
 // json.Marshal would silently break: the key order, the absence of whitespace,
 // and six decimals on the timestamp whatever its actual precision.
 func TestCanonicalPayload_WritesTheContractedShape(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name   string
 		cursor Cursor
@@ -236,12 +252,16 @@ func TestCanonicalPayload_WritesTheContractedShape(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.want, tt.cursor.canonicalPayload())
 		})
 	}
 }
 
 func TestWriteJSONString_EscapesWhatJSONRequires(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name  string
 		input string
@@ -261,6 +281,8 @@ func TestWriteJSONString_EscapesWhatJSONRequires(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			var b strings.Builder
 			writeJSONString(&b, tt.input)
 			assert.Equal(t, tt.want, b.String())

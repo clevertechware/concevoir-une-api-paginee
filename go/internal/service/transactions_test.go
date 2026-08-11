@@ -54,6 +54,8 @@ var descendingQuery = domain.ListQuery{AccountID: 42, Sort: domain.SortCreatedAt
 // rather than in an assertion, so a service that stopped adding it would never
 // reach the repository at all.
 func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name        string
 		available   int
@@ -70,6 +72,8 @@ func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			repository := mocks.NewTransactionRepository(t)
 			repository.EXPECT().
 				FirstPage(mock.Anything, descendingQuery, tt.limit+1).
@@ -91,6 +95,8 @@ func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 // presence of a cursor. There is no third path where a bound is passed as NULL,
 // and the mock has no NextPage expectation to prove it.
 func TestList_UsesTheFirstPageQueryWithoutACursor(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().
 		FirstPage(mock.Anything, descendingQuery, 21).
@@ -103,6 +109,8 @@ func TestList_UsesTheFirstPageQueryWithoutACursor(t *testing.T) {
 }
 
 func TestList_UsesTheNextPageQueryWithACursor(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().
 		FirstPage(mock.Anything, descendingQuery, 21).
@@ -133,6 +141,8 @@ func TestList_UsesTheNextPageQueryWithACursor(t *testing.T) {
 // TestList_RejectsACursorThatDoesNotBelongToTheRequest covers two claims at
 // once: a token is unforgeable, and it is bound to the filters that produced it.
 func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().
 		FirstPage(mock.Anything, mock.Anything, 21).
@@ -200,6 +210,8 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := s.List(t.Context(), tt.query, 20, tt.token)
 
 			if tt.wantErr == nil {
@@ -214,7 +226,12 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 // TestList_ExpiresACursorPastItsTTL is what the 410 of the contract rests on.
 // The same token is accepted or refused purely on how much time has passed, so
 // the clock is the only thing that moves between the two cases.
+//
+// The cases move that clock on the shared service, so they run in sequence:
+// t.Parallel() on them would have each case read another case's now().
 func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().
 		FirstPage(mock.Anything, descendingQuery, 21).
@@ -257,6 +274,8 @@ func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
 }
 
 func TestList_PropagatesRepositoryFailures(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().FirstPage(mock.Anything, descendingQuery, 21).Return(nil, errRepo).Once()
 
@@ -266,6 +285,8 @@ func TestList_PropagatesRepositoryFailures(t *testing.T) {
 }
 
 func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		page       int
@@ -279,6 +300,8 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			repository := mocks.NewTransactionRepository(t)
 			repository.EXPECT().
 				OffsetPage(mock.Anything, int64(0), tt.wantOffset, tt.size+1).
@@ -295,6 +318,8 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 }
 
 func TestCountEstimate_ReturnsThePlannerEstimate(t *testing.T) {
+	t.Parallel()
+
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
 

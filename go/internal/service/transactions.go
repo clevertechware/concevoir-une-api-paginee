@@ -17,10 +17,7 @@ type Transactions struct {
 	logger     logger.Logger
 	cursorKey  []byte
 	cursorTTL  time.Duration
-	// now stamps the tokens this service issues and decides whether an incoming
-	// one has expired. Injected so the expiry test does not have to wait
-	// three days, or trust the wall clock to stand still mid-test.
-	now func() time.Time
+	now        func() time.Time
 }
 
 // NewTransactions creates the listing service.
@@ -51,14 +48,12 @@ func (s *Transactions) List(
 		Sort:      string(q.Sort),
 	})
 
-	// One row more than the page. That extra row is the entire cost of knowing
-	// whether a next page exists, and it never leaves the server.
 	fetch := limit + 1
-
 	var (
 		rows []domain.Transaction
 		err  error
 	)
+
 	if token == "" {
 		rows, err = s.repository.FirstPage(ctx, q, fetch)
 	} else {

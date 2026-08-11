@@ -28,8 +28,8 @@ func NewTransactionRepository(pool *pgxpool.Pool, log logger.Logger) *Transactio
 	return &TransactionRepository{pool: pool, logger: log}
 }
 
-// FirstPage returns the head of a keyset walk. No cursor, so no bound at all —
-// not a bound neutralised by an IS NULL.
+// FirstPage returns the head of a keyset walk.
+// No cursor, so no bound at all because not a bound neutralized by an IS NULL.
 func (r *TransactionRepository) FirstPage(
 	ctx context.Context, q domain.ListQuery, limit int,
 ) ([]domain.Transaction, error) {

@@ -6,10 +6,10 @@ help: ## Show this help
 	@grep -hE '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-18s\033[0m %s\n", $$1, $$2}'
 
 build: ## Build the API binary
-	go build -o $(BIN)/server ./cmd/server
+	go build -o $(BIN)/server main.go
 
 run: ## Run the API on :8080 (needs `make db-up seed` at the repository root)
-	go run ./cmd/server
+	go run main.go
 
 test: ## Run every test (requires Docker)
 	go test -count=1 ./...

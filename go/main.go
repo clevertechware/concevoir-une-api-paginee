@@ -1,9 +1,3 @@
-// Command server exposes the paginated API of the article: the keyset walk it
-// recommends, the offset endpoint it argues against and the count estimate.
-//
-// It never writes. The schema and the dataset are shared infrastructure,
-// applied by the PostgreSQL container from sql/01-schema.sql and sql/seed.sql,
-// so the Go and the Spring Boot implementations read the very same rows.
 package main
 
 import (

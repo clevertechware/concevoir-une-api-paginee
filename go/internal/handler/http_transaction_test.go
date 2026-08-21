@@ -262,19 +262,73 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 	}
 }
 
-// TestCountEstimate_AnswersAnEstimateAndSaysSo is the honest answer to a client
-// that really wants a total: the planner's number, labelled as an estimate,
-// instead of a COUNT(*) costing 4 000 times the page it accompanies.
-func TestCountEstimate_AnswersAnEstimateAndSaysSo(t *testing.T) {
+func TestTotal_AnswersAnEstimateDependingExactParam(t *testing.T) {
 	t.Parallel()
 
-	service := mocks.NewTransactionService(t)
-	service.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
+	tests := []struct {
+		name               string
+		queryParam         string
+		transactionService func(t *testing.T) *mocks.TransactionService
+		status             int
+		bodyResponse       string
+	}{
+		{
+			name:       "should return total with no param fallback to estimation",
+			queryParam: "",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+		{
+			name:       "should return total with param fallback to estimation",
+			queryParam: "exact=false",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+		{
+			name:       "should return total with exact count",
+			queryParam: "exact=true",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, true).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": true}`,
+		},
+		{
+			name:       "should return total with estimation when exact is not true or false",
+			queryParam: "exact=toto",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+	}
 
-	recorder := get(t, newTestServer(service, idlePinger(t)), "/v1/transactions/count-estimate")
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.Equal(t, http.StatusOK, recorder.Code)
-	assert.JSONEq(t, `{"estimate": 10000000, "exact": false}`, recorder.Body.String())
+			service := tc.transactionService(t)
+			recorder := get(t, newTestServer(service, idlePinger(t)), "/v1/transactions/total?"+tc.queryParam)
+
+			require.Equal(t, tc.status, recorder.Code)
+			assert.JSONEq(t, tc.bodyResponse, recorder.Body.String())
+		})
+	}
 }
 
 func TestHealth_FollowsThePool(t *testing.T) {

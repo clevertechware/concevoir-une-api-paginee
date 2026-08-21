@@ -317,16 +317,46 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 	}
 }
 
-func TestCountEstimate_ReturnsThePlannerEstimate(t *testing.T) {
+func TestTransactions_Total(t *testing.T) {
 	t.Parallel()
 
-	repository := mocks.NewTransactionRepository(t)
-	repository.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
+	tests := []struct {
+		name  string
+		repo  func(t *testing.T) *mocks.TransactionRepository
+		exact bool
+		want  int64
+	}{
+		{
+			name:  "exact",
+			exact: true,
+			repo: func(t *testing.T) *mocks.TransactionRepository {
+				repository := mocks.NewTransactionRepository(t)
+				repository.EXPECT().Count(mock.Anything).Return(10_000_000, nil).Once()
+				return repository
+			},
+			want: 10_000_000,
+		},
+		{
+			name:  "estimate",
+			exact: false,
+			repo: func(t *testing.T) *mocks.TransactionRepository {
+				repository := mocks.NewTransactionRepository(t)
+				repository.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
+				return repository
+			},
+			want: 10_000_000,
+		},
+	}
 
-	estimate, err := newService(t, repository).CountEstimate(t.Context())
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
 
-	require.NoError(t, err)
-	assert.Equal(t, int64(10_000_000), estimate)
+			estimate, err := newService(t, tt.repo(t)).Total(t.Context(), tt.exact)
+			require.NoError(t, err)
+			assert.Equal(t, tt.want, estimate)
+		})
+	}
 }
 
 // tamper flips one bit of the signed payload and re-encodes.

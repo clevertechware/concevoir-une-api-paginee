@@ -15,7 +15,7 @@ import (
 type transactionService interface {
 	List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error)
 	ListByOffset(ctx context.Context, accountID int64, page, size int) (domain.OffsetPage, error)
-	CountEstimate(ctx context.Context) (int64, error)
+	Total(ctx context.Context, exact bool) (int64, error)
 }
 
 // HTTPTransactionHandler exposes the three listing endpoints of the contract.
@@ -137,15 +137,17 @@ func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
 	})
 }
 
-// countEstimate serves GET /v1/transactions/count-estimate.
-func (h *HTTPTransactionHandler) countEstimate(c *gin.Context) {
-	estimate, err := h.service.CountEstimate(c.Request.Context())
+// total serves GET /v1/transactions/count-estimate.
+func (h *HTTPTransactionHandler) total(c *gin.Context) {
+	exactQuery := c.Query("exact")
+	exact := exactQuery == "true"
+	estimate, err := h.service.Total(c.Request.Context(), exact)
 	if err != nil {
 		respondError(c, h.logger, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, countEstimateResponse{Estimate: estimate, Exact: false})
+	c.JSON(http.StatusOK, countEstimateResponse{Estimate: estimate, Exact: exact})
 }
 
 func transactionsResponse(transactions []domain.Transaction) []transactionResponse {

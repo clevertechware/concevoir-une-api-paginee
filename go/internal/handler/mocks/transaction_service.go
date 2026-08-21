@@ -38,66 +38,6 @@ func (_m *TransactionService) EXPECT() *TransactionService_Expecter {
 	return &TransactionService_Expecter{mock: &_m.Mock}
 }
 
-// CountEstimate provides a mock function for the type TransactionService
-func (_mock *TransactionService) CountEstimate(ctx context.Context) (int64, error) {
-	ret := _mock.Called(ctx)
-
-	if len(ret) == 0 {
-		panic("no return value specified for CountEstimate")
-	}
-
-	var r0 int64
-	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context) (int64, error)); ok {
-		return returnFunc(ctx)
-	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context) int64); ok {
-		r0 = returnFunc(ctx)
-	} else {
-		r0 = ret.Get(0).(int64)
-	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = returnFunc(ctx)
-	} else {
-		r1 = ret.Error(1)
-	}
-	return r0, r1
-}
-
-// TransactionService_CountEstimate_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CountEstimate'
-type TransactionService_CountEstimate_Call struct {
-	*mock.Call
-}
-
-// CountEstimate is a helper method to define mock.On call
-//   - ctx context.Context
-func (_e *TransactionService_Expecter) CountEstimate(ctx any) *TransactionService_CountEstimate_Call {
-	return &TransactionService_CountEstimate_Call{Call: _e.mock.On("CountEstimate", ctx)}
-}
-
-func (_c *TransactionService_CountEstimate_Call) Run(run func(ctx context.Context)) *TransactionService_CountEstimate_Call {
-	_c.Call.Run(func(args mock.Arguments) {
-		var arg0 context.Context
-		if args[0] != nil {
-			arg0 = args[0].(context.Context)
-		}
-		run(
-			arg0,
-		)
-	})
-	return _c
-}
-
-func (_c *TransactionService_CountEstimate_Call) Return(n int64, err error) *TransactionService_CountEstimate_Call {
-	_c.Call.Return(n, err)
-	return _c
-}
-
-func (_c *TransactionService_CountEstimate_Call) RunAndReturn(run func(ctx context.Context) (int64, error)) *TransactionService_CountEstimate_Call {
-	_c.Call.Return(run)
-	return _c
-}
-
 // List provides a mock function for the type TransactionService
 func (_mock *TransactionService) List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error) {
 	ret := _mock.Called(ctx, q, limit, token)
@@ -250,6 +190,72 @@ func (_c *TransactionService_ListByOffset_Call) Return(offsetPage domain.OffsetP
 }
 
 func (_c *TransactionService_ListByOffset_Call) RunAndReturn(run func(ctx context.Context, accountID int64, page int, size int) (domain.OffsetPage, error)) *TransactionService_ListByOffset_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Total provides a mock function for the type TransactionService
+func (_mock *TransactionService) Total(ctx context.Context, exact bool) (int64, error) {
+	ret := _mock.Called(ctx, exact)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Total")
+	}
+
+	var r0 int64
+	var r1 error
+	if returnFunc, ok := ret.Get(0).(func(context.Context, bool) (int64, error)); ok {
+		return returnFunc(ctx, exact)
+	}
+	if returnFunc, ok := ret.Get(0).(func(context.Context, bool) int64); ok {
+		r0 = returnFunc(ctx, exact)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+	if returnFunc, ok := ret.Get(1).(func(context.Context, bool) error); ok {
+		r1 = returnFunc(ctx, exact)
+	} else {
+		r1 = ret.Error(1)
+	}
+	return r0, r1
+}
+
+// TransactionService_Total_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Total'
+type TransactionService_Total_Call struct {
+	*mock.Call
+}
+
+// Total is a helper method to define mock.On call
+//   - ctx context.Context
+//   - exact bool
+func (_e *TransactionService_Expecter) Total(ctx any, exact any) *TransactionService_Total_Call {
+	return &TransactionService_Total_Call{Call: _e.mock.On("Total", ctx, exact)}
+}
+
+func (_c *TransactionService_Total_Call) Run(run func(ctx context.Context, exact bool)) *TransactionService_Total_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		var arg0 context.Context
+		if args[0] != nil {
+			arg0 = args[0].(context.Context)
+		}
+		var arg1 bool
+		if args[1] != nil {
+			arg1 = args[1].(bool)
+		}
+		run(
+			arg0,
+			arg1,
+		)
+	})
+	return _c
+}
+
+func (_c *TransactionService_Total_Call) Return(n int64, err error) *TransactionService_Total_Call {
+	_c.Call.Return(n, err)
+	return _c
+}
+
+func (_c *TransactionService_Total_Call) RunAndReturn(run func(ctx context.Context, exact bool) (int64, error)) *TransactionService_Total_Call {
 	_c.Call.Return(run)
 	return _c
 }

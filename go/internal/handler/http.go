@@ -73,7 +73,7 @@ func (s *HTTPServer) setupRoutes() {
 		v1Transactions.GET("/offset", s.transactions.listByOffset)
 
 		// The honest answer to "give me a total": an estimate, labelled as one.
-		v1Transactions.GET("/count-estimate", s.transactions.countEstimate)
+		v1Transactions.GET("/total", s.transactions.total)
 	}
 }
 

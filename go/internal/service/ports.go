@@ -21,4 +21,5 @@ type transactionRepository interface {
 	NextPage(ctx context.Context, q domain.ListQuery, after domain.Bound, limit int) ([]domain.Transaction, error)
 	OffsetPage(ctx context.Context, accountID int64, offset, limit int) ([]domain.Transaction, error)
 	CountEstimate(ctx context.Context) (int64, error)
+	Count(ctx context.Context) (int64, error)
 }

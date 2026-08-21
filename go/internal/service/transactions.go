@@ -112,8 +112,11 @@ func (s *Transactions) ListByOffset(
 	return domain.OffsetPage{Transactions: rows, Page: page, Size: size, HasMore: hasMore}, nil
 }
 
-// CountEstimate returns the planner's row estimate, assumed as an estimate.
-func (s *Transactions) CountEstimate(ctx context.Context) (int64, error) {
+// Total returns the planner's row estimate, assumed as an estimate.
+func (s *Transactions) Total(ctx context.Context, exact bool) (int64, error) {
+	if exact {
+		return s.repository.Count(ctx)
+	}
 	return s.repository.CountEstimate(ctx)
 }
 

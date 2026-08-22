@@ -83,6 +83,10 @@ public class TransactionRepository {
                 .list();
     }
 
+    public long exactRowCount() {
+        return jdbcClient.sql(TransactionQueries.EXACT_ROW_COUNT).query(Long.class).single();
+    }
+
     public long estimatedRowCount() {
         Long estimate = jdbcClient.sql(TransactionQueries.ESTIMATED_ROW_COUNT)
                 .query(Long.class)

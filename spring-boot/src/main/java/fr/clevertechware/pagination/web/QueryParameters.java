@@ -60,6 +60,14 @@ final class QueryParameters {
         return page;
     }
 
+    /**
+     * Anything other than {@code true} reads as "an estimate will do": the total is never refused.
+     * Matched literally, as the Go twin does, so both implementations answer the same client alike.
+     */
+    static boolean exact(String raw) {
+        return "true".equals(raw);
+    }
+
     static String cursor(String raw) {
         return raw == null || raw.isBlank() ? null : raw;
     }

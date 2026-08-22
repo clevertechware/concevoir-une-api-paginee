@@ -76,6 +76,9 @@ final class TransactionQueries {
             ORDER BY created_at DESC, id DESC
             LIMIT ? OFFSET ?""".formatted(COLUMNS);
 
+    /** The real count, 101 ms on the article's dataset: served only to a client that asks for it. */
+    static final String EXACT_ROW_COUNT = "SELECT count(*) FROM transactions";
+
     /** Planner statistics rather than a count: {@code reltuples} is -1 until the table is analysed. */
     static final String ESTIMATED_ROW_COUNT =
             "SELECT reltuples::bigint FROM pg_class WHERE oid = 'transactions'::regclass";

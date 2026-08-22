@@ -15,7 +15,11 @@ postgres:
   max_conns: 10
 
 logging:
-  level: info
+  # debug ajoute une ligne par requête SQL : l'énoncé, ses arguments et sa
+  # durée, via le traceur pgx. C'est le seul interrupteur — il n'y a pas de
+  # réglage dédié. Les arguments sont donc journalisés, filtres du client
+  # compris : à réserver au diagnostic.
+  level: debug
   format: text
 
 cursor:

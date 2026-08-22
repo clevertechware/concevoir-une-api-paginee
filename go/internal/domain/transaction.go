@@ -54,6 +54,26 @@ type ListQuery struct {
 	Sort      Sort
 }
 
+// ListParams is one keyset page asked for: which walk, how many rows, and where
+// to resume.
+//
+// Limit and Cursor stay out of ListQuery on purpose. ListQuery is what the
+// fingerprint covers and what the repository receives; a limit is free to
+// change mid-walk without invalidating a cursor, and the repository never sees
+// a token at all.
+type ListParams struct {
+	Query  ListQuery
+	Limit  int
+	Cursor string
+}
+
+// OffsetParams is one page of the counter-example endpoint, addressed by rank.
+type OffsetParams struct {
+	AccountID int64
+	Page      int
+	Size      int
+}
+
 // Bound is the position a keyset page resumes from.
 type Bound struct {
 	CreatedAt time.Time

@@ -31,7 +31,7 @@ const Version = 1
 const timeLayout = "2006-01-02T15:04:05.000000Z"
 
 // fingerprintBytes is how much of the SHA-256 digest ends up in the token.
-// Eight bytes is not a security boundary — the HMAC is — it only has to make an
+// Eight bytes is not a security boundary (the HMAC is). It only has to make an
 // accidental collision between two filter sets implausible.
 const fingerprintBytes = 8
 
@@ -41,7 +41,7 @@ var (
 	// on purpose, so the response never tells an attacker which check failed.
 	ErrInvalidCursor = errors.New("invalid cursor")
 
-	// ErrCursorExpired means the token was well formed but issued too long ago.
+	// ErrCursorExpired means the token was well-formed but issued too long ago.
 	// The caller answers 410, not 400: the request was fine, the position is gone.
 	ErrCursorExpired = errors.New("cursor expired")
 

@@ -16,6 +16,8 @@ func (l *NoOpLogger) Error(string, ...any) {}
 
 func (l *NoOpLogger) With(...any) Logger { return l }
 
+func (l *NoOpLogger) Enabled(Level) bool { return false }
+
 func (l *NoOpLogger) DebugContext(context.Context, string, ...any) {}
 func (l *NoOpLogger) InfoContext(context.Context, string, ...any)  {}
 func (l *NoOpLogger) WarnContext(context.Context, string, ...any)  {}

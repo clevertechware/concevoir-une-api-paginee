@@ -1,8 +1,13 @@
-.PHONY: help db-up db-down db-shell seed bench go-run go-test java-run java-test test clean
+.PHONY: help db-up db-down db-shell db-logs seed bench go-run go-test java-run java-test test clean
 
 # 10 000 000 is the article's dataset. Use ROWS=100000 for a quick loop; the
 # depths hard-coded in sql/benchmark.sql then no longer exist.
 ROWS ?= 10000000
+
+# all makes the server log every statement it receives. Left off by default:
+# it costs write I/O on every query, which `make bench` would end up measuring.
+PG_LOG_STATEMENT ?= none
+export PG_LOG_STATEMENT
 
 PSQL := docker compose exec -T postgres psql -U postgres -d pagination -v ON_ERROR_STOP=1
 
@@ -17,6 +22,9 @@ db-down: ## Stop PostgreSQL and drop its volume
 
 db-shell: ## Open a psql prompt
 	docker compose exec postgres psql -U postgres -d pagination
+
+db-logs: ## Follow the PostgreSQL log (see PG_LOG_STATEMENT)
+	docker compose logs -f postgres
 
 seed: ## Load the dataset (override with ROWS=100000)
 	@echo "seeding $(ROWS) transactions, this takes a while for 10M…"

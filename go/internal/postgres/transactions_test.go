@@ -137,8 +137,17 @@ func (s *RepositorySuite) TestCountEstimate_ApproximatesTheTableWithoutCountingI
 	estimate, err := s.repository.CountEstimate(t.Context())
 
 	require.NoError(t, err)
-	assert.InEpsilon(t, float64(seededRows), float64(estimate), 0.05,
-		"the planner estimate should land within 5%% of the real count")
+	assert.EqualValues(t, seededRows, estimate)
+}
+
+// TestCount verifies that the Count method of the repository returns the correct number of records without errors.
+func (s *RepositorySuite) TestCount() {
+	t := s.T()
+
+	count, err := s.repository.Count(t.Context())
+
+	require.NoError(t, err)
+	assert.EqualValues(t, seededRows, count)
 }
 
 func (s *RepositorySuite) TestPing_ReportsAReachablePool() {
@@ -168,6 +177,8 @@ func (s *RepositorySuite) TestQueries_AreOneStatementPerCaseAndNeverShareABounde
 }
 
 func TestQueriesFor_PicksTheDirectionFromTheSort(t *testing.T) {
+	t.Parallel()
+
 	assert.Equal(t, descendingQueries, queriesFor(domain.SortCreatedAtDesc))
 	assert.Equal(t, ascendingQueries, queriesFor(domain.SortCreatedAtAsc))
 	assert.Equal(t, descendingQueries, queriesFor(""), "an unset sort defaults to descending")

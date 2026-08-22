@@ -19,7 +19,9 @@ import (
 // without ever raising an error".
 //
 // Each one seeds the dataset it needs, so the order in which Go runs them
-// against the shared container does not matter.
+// against the shared container does not matter. None of them calls t.Parallel():
+// seeding truncates the one table they all share, so running two at once would
+// have one walk read the other's dataset.
 
 const (
 	walkRows     = 200

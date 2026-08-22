@@ -20,6 +20,8 @@ import (
 // a 200, not a 400 that only teaches it to retry. The rejected cases set no
 // expectation at all, so reaching the service would fail the test.
 func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -38,10 +40,15 @@ func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					List(mock.Anything, mock.Anything, tt.wantLimit, mock.Anything).
+					List(mock.Anything, domain.ListParams{
+						Query: domain.ListQuery{Sort: domain.SortCreatedAtDesc},
+						Limit: tt.wantLimit,
+					}).
 					Return(domain.KeysetPage{}, nil).
 					Once()
 			}
@@ -58,6 +65,8 @@ func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
 }
 
 func TestList_ValidatesTheFilterParameters(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -87,10 +96,16 @@ func TestList_ValidatesTheFilterParameters(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					List(mock.Anything, tt.wantQuery, mock.Anything, tt.wantToken).
+					List(mock.Anything, domain.ListParams{
+						Query:  tt.wantQuery,
+						Limit:  domain.DefaultLimit,
+						Cursor: tt.wantToken,
+					}).
 					Return(domain.KeysetPage{}, nil).
 					Once()
 			}
@@ -109,9 +124,11 @@ func TestList_ValidatesTheFilterParameters(t *testing.T) {
 // TestList_SerialisesTheContractedEnvelope pins the wire format: a string id, a
 // nullable next, no total anywhere.
 func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{
 			Transactions: []domain.Transaction{{
 				ID:          9500000,
@@ -143,9 +160,11 @@ func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
 // TestList_ReportsTheEndOfTheWalkWithANullNext keeps next as the single
 // authority on the end of the walk.
 func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{Transactions: nil, HasMore: false}, nil).
 		Once()
 
@@ -159,6 +178,8 @@ func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
 // place: an expired cursor is not a malformed request, and the difference is
 // exactly what tells a client to restart its walk instead of fixing its query.
 func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		err        error
@@ -172,9 +193,15 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			service.EXPECT().
-				List(mock.Anything, mock.Anything, mock.Anything, "whatever").
+				List(mock.Anything, domain.ListParams{
+					Query:  domain.ListQuery{Sort: domain.SortCreatedAtDesc},
+					Limit:  domain.DefaultLimit,
+					Cursor: "whatever",
+				}).
 				Return(domain.KeysetPage{}, tt.err).
 				Once()
 
@@ -189,9 +216,11 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 // TestList_NeverLeaksTheInternalErrorOnA500 keeps table names and query
 // fragments out of a response body.
 func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
+	t.Parallel()
+
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{}, errors.New(`pq: relation "transactions" does not exist`)).
 		Once()
 
@@ -203,6 +232,8 @@ func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
 }
 
 func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		target     string
@@ -217,14 +248,18 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 		{name: "rejects page zero", target: "/v1/transactions/offset?page=0", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
 		{name: "rejects a negative page", target: "/v1/transactions/offset?page=-2", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
 		{name: "rejects a page that is not a number", target: "/v1/transactions/offset?page=first", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
+		{name: "rejects a size that is not a number", target: "/v1/transactions/offset?size=many", wantStatus: http.StatusBadRequest, wantCode: "invalid_limit"},
+		{name: "rejects an account_id that is not a number", target: "/v1/transactions/offset?account_id=abc", wantStatus: http.StatusBadRequest, wantCode: "invalid_account_id"},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					ListByOffset(mock.Anything, mock.Anything, tt.wantPage, tt.wantSize).
+					ListByOffset(mock.Anything, domain.OffsetParams{Page: tt.wantPage, Size: tt.wantSize}).
 					Return(domain.OffsetPage{}, nil).
 					Once()
 			}
@@ -240,20 +275,78 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 	}
 }
 
-// TestCountEstimate_AnswersAnEstimateAndSaysSo is the honest answer to a client
-// that really wants a total: the planner's number, labelled as an estimate,
-// instead of a COUNT(*) costing 4 000 times the page it accompanies.
-func TestCountEstimate_AnswersAnEstimateAndSaysSo(t *testing.T) {
-	service := mocks.NewTransactionService(t)
-	service.EXPECT().CountEstimate(mock.Anything).Return(10_000_000, nil).Once()
+func TestTotal_AnswersAnEstimateDependingExactParam(t *testing.T) {
+	t.Parallel()
 
-	recorder := get(t, newTestServer(service, idlePinger(t)), "/v1/transactions/count-estimate")
+	tests := []struct {
+		name               string
+		queryParam         string
+		transactionService func(t *testing.T) *mocks.TransactionService
+		status             int
+		bodyResponse       string
+	}{
+		{
+			name:       "should return total with no param fallback to estimation",
+			queryParam: "",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+		{
+			name:       "should return total with param fallback to estimation",
+			queryParam: "exact=false",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+		{
+			name:       "should return total with exact count",
+			queryParam: "exact=true",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, true).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": true}`,
+		},
+		{
+			name:       "should return total with estimation when exact is not true or false",
+			queryParam: "exact=toto",
+			transactionService: func(t *testing.T) *mocks.TransactionService {
+				service := mocks.NewTransactionService(t)
+				service.EXPECT().Total(mock.Anything, false).Return(10_000_000, nil).Once()
+				return service
+			},
+			status:       http.StatusOK,
+			bodyResponse: `{"estimate": 10000000, "exact": false}`,
+		},
+	}
 
-	require.Equal(t, http.StatusOK, recorder.Code)
-	assert.JSONEq(t, `{"estimate": 10000000, "exact": false}`, recorder.Body.String())
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			service := tc.transactionService(t)
+			recorder := get(t, newTestServer(service, idlePinger(t)), "/v1/transactions/total?"+tc.queryParam)
+
+			require.Equal(t, tc.status, recorder.Code)
+			assert.JSONEq(t, tc.bodyResponse, recorder.Body.String())
+		})
+	}
 }
 
 func TestHealth_FollowsThePool(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name       string
 		pingErr    error
@@ -271,6 +364,8 @@ func TestHealth_FollowsThePool(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			db := mocks.NewPinger(t)
 			db.EXPECT().Ping(mock.Anything).Return(tt.pingErr).Once()
 

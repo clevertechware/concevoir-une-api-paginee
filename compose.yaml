@@ -15,6 +15,16 @@ services:
     # No tuning on purpose: shared_buffers stays at its 128 MB default, far
     # below the table size, so the cache thrashes and the plan's `written`
     # counter stays visible.
+    #
+    # PG_LOG_STATEMENT=all gives the server-side view of what the Go tracer
+    # shows at debug level: every statement the box receives, seed and psql
+    # sessions included, whichever client sent it. Off by default because it
+    # is write I/O on every statement, and `make bench` would pay for it.
+    # `make db-up PG_LOG_STATEMENT=all`, then `make db-logs`.
+    command:
+      - postgres
+      - -c
+      - log_statement=${PG_LOG_STATEMENT:-none}
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro

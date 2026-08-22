@@ -38,11 +38,15 @@ type specVectors struct {
 // possible moment. So the assertion is on the exact strings, not on a
 // round-trip: a round-trip only proves this implementation agrees with itself.
 func TestConformance_MatchesTheSharedVectors(t *testing.T) {
+	t.Parallel()
+
 	spec := loadVectors(t)
 	key := []byte(spec.HMACKey)
 
 	for _, vector := range spec.Vectors {
 		t.Run(vector.Name, func(t *testing.T) {
+			t.Parallel()
+
 			filters := Filters{
 				AccountID: vector.Filters.AccountID,
 				Status:    vector.Filters.Status,
@@ -68,10 +72,14 @@ func TestConformance_MatchesTheSharedVectors(t *testing.T) {
 // without padding. The payload stays readable on purpose — it is signed, not
 // encrypted.
 func TestConformance_TokenIsSignatureThenPayload(t *testing.T) {
+	t.Parallel()
+
 	spec := loadVectors(t)
 
 	for _, vector := range spec.Vectors {
 		t.Run(vector.Name, func(t *testing.T) {
+			t.Parallel()
+
 			raw, err := base64.RawURLEncoding.DecodeString(vector.Token)
 			require.NoError(t, err)
 

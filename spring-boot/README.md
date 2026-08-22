@@ -19,7 +19,8 @@ de l'article a ici un test qui la prouve contre un vrai PostgreSQL.
   vecteurs de conformance partagés avec l'implémentation Go.
 - **`LIMIT n+1`** pour répondre à `has_more` sans jamais compter, et la ligne excédentaire ne sort
   jamais du serveur.
-- **Aucun `total`** dans la réponse. Un endpoint séparé rend une estimation, et dit que c'en est une.
+- **Aucun `total`** dans la réponse. Un endpoint séparé rend une estimation, et dit que c'en est
+  une ; `exact=true` paie le `COUNT(*)` pour qui l'exige.
 - **Pas de JPA.** `JdbcClient` et du SQL écrit à la main : le sujet de l'article, c'est le SQL, il
   doit rester lisible.
 
@@ -139,7 +140,7 @@ L'enveloppe, `id` sérialisé en chaîne, `created_at` en RFC 3339 `Z`, l'absenc
 parcours depuis le curseur rendu, et les quatre codes d'erreur du contrat : `400 invalid_cursor`,
 `400 cursor_filter_mismatch`, `410 cursor_expired`, `400 invalid_limit` / `invalid_sort` /
 `invalid_account_id` / `invalid_page`. Plus `/v1/transactions/offset`,
-`/v1/transactions/count-estimate` et `/healthz`.
+`/v1/transactions/total`, avec et sans `exact=true`, et `/healthz`.
 
 ## Architecture
 

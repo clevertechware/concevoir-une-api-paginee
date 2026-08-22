@@ -33,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class TransactionApiIT extends AbstractDatabaseTest {
 
     private static final ObjectMapper JSON = new ObjectMapper();
+    private static final long SEEDED_ROWS = 100_050;
 
     @Autowired
     private MockMvc mockMvc;
@@ -174,10 +175,18 @@ class TransactionApiIT extends AbstractDatabaseTest {
 
     @Test
     void answersTheTotalAsAnEstimateAndSaysSo() throws Exception {
-        mockMvc.perform(get("/v1/transactions/count-estimate"))
+        mockMvc.perform(get("/v1/transactions/total"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.exact").value(false))
                 .andExpect(jsonPath("$.estimate").isNumber());
+    }
+
+    @Test
+    void countsTheRowsForRealWhenTheClientAsksForAnExactTotal() throws Exception {
+        mockMvc.perform(get("/v1/transactions/total").param("exact", "true"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.exact").value(true))
+                .andExpect(jsonPath("$.estimate").value(SEEDED_ROWS));
     }
 
     @Test

@@ -13,9 +13,9 @@ import (
 )
 
 type transactionService interface {
-	List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error)
-	ListByOffset(ctx context.Context, accountID int64, page, size int) (domain.OffsetPage, error)
-	CountEstimate(ctx context.Context) (int64, error)
+	List(ctx context.Context, params domain.ListParams) (domain.KeysetPage, error)
+	ListByOffset(ctx context.Context, params domain.OffsetParams) (domain.OffsetPage, error)
+	Total(ctx context.Context, exact bool) (int64, error)
 }
 
 // HTTPTransactionHandler exposes the three listing endpoints of the contract.
@@ -73,27 +73,13 @@ type countEstimateResponse struct {
 
 // list serves GET /v1/transactions, the keyset walk.
 func (h *HTTPTransactionHandler) list(c *gin.Context) {
-	accountID, err := accountIDParam(c)
-	if err != nil {
+	var request keysetListRequest
+	if err := c.ShouldBindQuery(&request); err != nil {
 		respondError(c, h.logger, err)
 		return
 	}
 
-	sort, err := domain.ParseSort(c.Query("sort"))
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	limit, err := limitParam(c, "limit", domain.DefaultLimit, domain.MaxLimit)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	query := domain.ListQuery{AccountID: accountID, Status: c.Query("status"), Sort: sort}
-
-	page, err := h.service.List(c.Request.Context(), query, limit, c.Query("cursor"))
+	page, err := h.service.List(c.Request.Context(), request.params())
 	if err != nil {
 		respondError(c, h.logger, err)
 		return
@@ -107,25 +93,13 @@ func (h *HTTPTransactionHandler) list(c *gin.Context) {
 
 // listByOffset serves GET /v1/transactions/offset, the counter-example.
 func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
-	accountID, err := accountIDParam(c)
-	if err != nil {
+	var request offsetListRequest
+	if err := c.ShouldBindQuery(&request); err != nil {
 		respondError(c, h.logger, err)
 		return
 	}
 
-	pageNumber, err := pageParam(c)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	size, err := limitParam(c, "size", domain.DefaultLimit, domain.MaxLimit)
-	if err != nil {
-		respondError(c, h.logger, err)
-		return
-	}
-
-	page, err := h.service.ListByOffset(c.Request.Context(), accountID, pageNumber, size)
+	page, err := h.service.ListByOffset(c.Request.Context(), request.params())
 	if err != nil {
 		respondError(c, h.logger, err)
 		return
@@ -137,15 +111,22 @@ func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
 	})
 }
 
-// countEstimate serves GET /v1/transactions/count-estimate.
-func (h *HTTPTransactionHandler) countEstimate(c *gin.Context) {
-	estimate, err := h.service.CountEstimate(c.Request.Context())
+// total serves GET /v1/transactions/count-estimate.
+func (h *HTTPTransactionHandler) total(c *gin.Context) {
+	var request totalRequest
+	if err := c.ShouldBindQuery(&request); err != nil {
+		respondError(c, h.logger, err)
+		return
+	}
+
+	exact := request.Exact.value()
+	estimate, err := h.service.Total(c.Request.Context(), exact)
 	if err != nil {
 		respondError(c, h.logger, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, countEstimateResponse{Estimate: estimate, Exact: false})
+	c.JSON(http.StatusOK, countEstimateResponse{Estimate: estimate, Exact: exact})
 }
 
 func transactionsResponse(transactions []domain.Transaction) []transactionResponse {
@@ -167,48 +148,4 @@ func nullable(s string) *string {
 		return nil
 	}
 	return &s
-}
-
-// limitParam reads a page size and caps it. Over the maximum is not an error:
-// the contract caps, it does not reject.
-func limitParam(c *gin.Context, name string, fallback, maxAllowed int) (int, error) {
-	raw := c.Query(name)
-	if raw == "" {
-		return fallback, nil
-	}
-
-	value, err := strconv.Atoi(raw)
-	if err != nil || value < 0 {
-		return 0, domain.ErrInvalidLimit
-	}
-
-	return domain.CapLimit(value, fallback, maxAllowed), nil
-}
-
-func pageParam(c *gin.Context) (int, error) {
-	raw := c.Query("page")
-	if raw == "" {
-		return 1, nil
-	}
-
-	value, err := strconv.Atoi(raw)
-	if err != nil || value < 1 {
-		return 0, domain.ErrInvalidPage
-	}
-	return value, nil
-}
-
-// accountIDParam reads the positive bigint filter. Absent means 0, which is what
-// the filter fingerprint uses for "no value".
-func accountIDParam(c *gin.Context) (int64, error) {
-	raw := c.Query("account_id")
-	if raw == "" {
-		return 0, nil
-	}
-
-	value, err := strconv.ParseInt(raw, 10, 64)
-	if err != nil || value <= 0 {
-		return 0, domain.ErrInvalidAccountID
-	}
-	return value, nil
 }

@@ -49,8 +49,12 @@ public class TransactionService {
         return new OffsetPage(rows, query.page(), query.size(), hasMore);
     }
 
-    public long estimatedRowCount() {
-        return repository.estimatedRowCount();
+    /**
+     * The total, estimated by default. An exact total means a {@code COUNT(*)}, some 4 000 times the
+     * cost of the page it accompanies, so a client only gets one by asking for it.
+     */
+    public long total(boolean exact) {
+        return exact ? repository.exactRowCount() : repository.estimatedRowCount();
     }
 
     public boolean isDatabaseReachable() {

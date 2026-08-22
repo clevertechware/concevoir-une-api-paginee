@@ -122,6 +122,9 @@ const (
 		LIMIT $2 OFFSET $3`
 )
 
+// countQuery is a SQL query that retrieves the total count of rows from the `transactions` table.
+const countQuery = `SELECT count(*) FROM transactions`
+
 // countEstimate reads the planner's own row estimate instead of counting.
 // The COUNT(*) it replaces takes 101 ms and 93 457 blocks on the article's
 // dataset, against 0,025 ms for the page it would accompany.

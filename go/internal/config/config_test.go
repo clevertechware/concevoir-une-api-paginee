@@ -43,6 +43,8 @@ func writeConfig(t *testing.T, content string) string {
 }
 
 func TestLoad_ReadsTheCommittedFile(t *testing.T) {
+	t.Parallel()
+
 	cfg, err := Load(writeConfig(t, validYAML))
 
 	require.NoError(t, err)
@@ -55,6 +57,9 @@ func TestLoad_ReadsTheCommittedFile(t *testing.T) {
 
 // TestLoad_LetsTheEnvironmentWin is why the signing key can stay out of git:
 // the committed value is a development default, and deployment overrides it.
+//
+// No t.Parallel() here: t.Setenv changes the environment of the whole test
+// binary, which is exactly what every other Load test reads.
 func TestLoad_LetsTheEnvironmentWin(t *testing.T) {
 	t.Setenv("PAGINATION_CURSOR__KEY", "the-production-key")
 	t.Setenv("PAGINATION_POSTGRES__PASSWORD", "s3cret")
@@ -69,6 +74,8 @@ func TestLoad_LetsTheEnvironmentWin(t *testing.T) {
 }
 
 func TestLoad_RefusesToStartOnSettingsThatWouldFailLater(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		content string
@@ -98,6 +105,8 @@ func TestLoad_RefusesToStartOnSettingsThatWouldFailLater(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			_, err := Load(writeConfig(t, tt.content))
 
 			require.Error(t, err)
@@ -107,6 +116,8 @@ func TestLoad_RefusesToStartOnSettingsThatWouldFailLater(t *testing.T) {
 }
 
 func TestLoad_FailsWhenTheFileIsMissing(t *testing.T) {
+	t.Parallel()
+
 	_, err := Load(t.TempDir())
 
 	require.Error(t, err)
@@ -114,6 +125,8 @@ func TestLoad_FailsWhenTheFileIsMissing(t *testing.T) {
 }
 
 func TestDSN_BuildsTheConnectionString(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name     string
 		postgres Postgres
@@ -133,6 +146,8 @@ func TestDSN_BuildsTheConnectionString(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			assert.Equal(t, tt.want, tt.postgres.DSN())
 		})
 	}

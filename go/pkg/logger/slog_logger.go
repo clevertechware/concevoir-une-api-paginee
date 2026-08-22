@@ -51,6 +51,25 @@ func (l *SlogLogger) With(args ...any) Logger {
 	return &SlogLogger{logger: l.logger.With(args...)}
 }
 
+// Enabled asks the handler, so it follows the configured level. The context
+// plays no part: both handlers this package installs ignore it.
+func (l *SlogLogger) Enabled(level Level) bool {
+	return l.logger.Enabled(context.Background(), slogLevel(level))
+}
+
+func slogLevel(level Level) slog.Level {
+	switch level {
+	case LevelDebug:
+		return slog.LevelDebug
+	case LevelWarn:
+		return slog.LevelWarn
+	case LevelError:
+		return slog.LevelError
+	default:
+		return slog.LevelInfo
+	}
+}
+
 func (l *SlogLogger) DebugContext(ctx context.Context, msg string, args ...any) {
 	l.logger.DebugContext(ctx, msg, args...)
 }

@@ -75,11 +75,23 @@ Réponse `200` :
 Toujours pas de `total` : le `COUNT(*)` coûte 4 000 fois la page. Un endpoint
 séparé l'expose, en estimation assumée (voir plus bas).
 
-### `GET /v1/transactions/count-estimate` — le total, assumé comme une estimation
+### `GET /v1/transactions/total` — le total, estimé par défaut
 
-Lit `reltuples` dans `pg_class` plutôt que de compter. Renvoie
-`{"estimate": 10000000, "exact": false}`. Sert à montrer ce qu'on répond quand un
-client réclame vraiment un total.
+| Paramètre | Défaut  | Règle |
+|-----------|---------|-------|
+| `exact`   | `false` | la chaîne `true` **exactement**, tout le reste vaut `false` |
+
+Sans `exact=true`, lit `reltuples` dans `pg_class` plutôt que de compter et
+renvoie `{"estimate": 10000000, "exact": false}`. Sert à montrer ce qu'on répond
+quand un client réclame vraiment un total.
+
+Avec `exact=true`, exécute le `COUNT(*)` — 101 ms contre 0,025 ms pour la page
+qu'il accompagnerait — et renvoie `{"estimate": 10000000, "exact": true}`. Le
+client paie ce qu'il demande, et la réponse dit toujours laquelle des deux il a
+obtenue.
+
+Une valeur non reconnue (`TRUE`, `1`, `oui`) retombe sur l'estimation : ce
+paramètre ne rend jamais `400`, dans aucune des deux implémentations.
 
 ### `GET /healthz`
 

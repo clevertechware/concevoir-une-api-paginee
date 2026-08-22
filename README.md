@@ -53,6 +53,11 @@ make seed ROWS=100000       # … ou de quoi boucler vite
 make bench                  # rejoue les mesures de l'article
 ```
 
+Pour voir passer le SQL : `make db-up PG_LOG_STATEMENT=all` puis `make db-logs`
+donnent la vue serveur, `logging.level: debug` côté application donne la vue
+client, avec la requête HTTP qui l'a provoquée. Le premier reste éteint par
+défaut, sinon `make bench` mesurerait aussi l'écriture de ses propres journaux.
+
 ### Ce que `make bench` donne
 
 Relevé sur un Mac de développement, PostgreSQL 18.4 en conteneur, `shared_buffers`

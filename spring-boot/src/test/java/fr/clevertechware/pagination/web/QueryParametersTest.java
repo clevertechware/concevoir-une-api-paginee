@@ -80,6 +80,22 @@ class QueryParametersTest {
     }
 
     @Test
+    void asksForAnExactTotalOnlyOnTheLiteralTrue() {
+        assertThat(QueryParameters.exact("true")).isTrue();
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"false", "TRUE", "1", "yes", "toto"})
+    void fallsBackToTheEstimateForAnythingElseRatherThanRejectingIt(String raw) {
+        assertThat(QueryParameters.exact(raw)).isFalse();
+    }
+
+    @Test
+    void fallsBackToTheEstimateWhenTheExactParameterIsAbsent() {
+        assertThat(QueryParameters.exact(null)).isFalse();
+    }
+
+    @Test
     void treatsAnAbsentAccountIdAsTheSameZeroTheFingerprintUses() {
         assertThat(QueryParameters.accountId(null)).isEqualTo(ListQuery.NO_ACCOUNT_FILTER);
     }

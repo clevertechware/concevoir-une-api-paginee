@@ -88,6 +88,21 @@ make mocks              # régénère les doubles après un changement de port
   lignes sur 50 comptes, sinon aucune partition de tenant n'est assez profonde
   pour que le piège de la requête unique fasse des dégâts visibles.
 
+## Voir les requêtes
+
+`logging.level: debug` (ou `PAGINATION_LOGGING__LEVEL=debug`) installe le
+traceur pgx et journalise chaque énoncé SQL, ses arguments et sa durée. Il n'y a
+pas de réglage dédié : le niveau de log est l'interrupteur, et la décision se
+prend une seule fois dans `postgres.NewPool`, parce que pgx alloue à chaque
+requête dès qu'un traceur existe. C'est ce qui rend visible la règle des deux
+requêtes sans lire le code — et cela journalise les arguments, donc les filtres
+du client.
+
+La vue serveur existe en parallèle : `make db-up PG_LOG_STATEMENT=all` puis
+`make db-logs`, à la racine du dépôt. Elle voit tout ce qui atteint la base, y
+compris le seed et `make bench`, mais ne sait pas quelle requête HTTP l'a
+provoqué. Éteinte par défaut, sinon `make bench` mesurerait ses propres écritures.
+
 **Piège récurrent** : les compteurs de blocs varient selon ce qui est déjà en
 cache. Toute comparaison de profondeur passe par `RepositorySuite.measure`, qui
 chauffe le cache avant de mesurer.
@@ -100,6 +115,20 @@ annulé. Utiliser `context.WithoutCancel(ctx)`, sinon le nettoyage ne part jamai
 - Commentaires de code en anglais. README et ce fichier en français.
 - Les commentaires de `internal/postgres/queries.go` expliquent le *pourquoi* :
   ce sont eux que le lecteur de l'article vient lire. Ne pas les raccourcir.
+- Paramètres de requête : un struct `xxxRequest` par endpoint dans
+  `internal/handler/requests.go`, lié par `c.ShouldBindQuery`. Chaque paramètre
+  est un type nommé qui se valide lui-même dans `UnmarshalParam`
+  (`binding.BindUnmarshaler`) plutôt que dans un tag `binding` : le validateur
+  ne s'exécute qu'après la conversion, donc un `limit=abc` échoue avant lui avec
+  une erreur qui ne nomme pas le champ, alors que le contrat répond avec le code
+  du paramètre fautif.
+- Frontière du service : un `xxxParams` du domaine par appel
+  (`domain.ListParams`, `domain.OffsetParams`) — `Params` côté domaine,
+  `Request` côté HTTP, pour que les deux ne se confondent pas. `Limit` et
+  `Cursor` restent **hors** de `ListQuery` : `ListQuery` est ce que couvre
+  l'empreinte du curseur et ce que reçoit le repository, or un `limit` peut
+  changer en cours de parcours sans invalider le curseur, et le repository ne
+  voit jamais de jeton.
 - Erreurs : sentinelles de validation dans `internal/domain`, sentinelles de
   curseur dans `pkg/cursor` (qui ne peut pas dépendre d'`internal/`). Le handler
   mappe les deux familles au même endroit, `internal/handler/errors.go`. Un 500

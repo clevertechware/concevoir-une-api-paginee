@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -142,6 +143,22 @@ class TransactionServiceTest {
 
         assertThat(next.fingerprint())
                 .isEqualTo(FilterFingerprint.of(42L, "", SortOrder.CREATED_AT_DESC));
+    }
+
+    @Test
+    void countsTheRowsForRealOnlyWhenTheClientAsksForAnExactTotal() {
+        when(repository.exactRowCount()).thenReturn(10_000_000L);
+
+        assertThat(service.total(true)).isEqualTo(10_000_000L);
+        verify(repository, never()).estimatedRowCount();
+    }
+
+    @Test
+    void answersTheTotalWithThePlannerEstimateByDefault() {
+        when(repository.estimatedRowCount()).thenReturn(9_998_400L);
+
+        assertThat(service.total(false)).isEqualTo(9_998_400L);
+        verify(repository, never()).exactRowCount();
     }
 
     private static ListQuery unfiltered(int limit, String cursor) {

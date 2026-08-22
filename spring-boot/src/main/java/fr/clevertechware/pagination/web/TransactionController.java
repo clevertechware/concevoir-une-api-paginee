@@ -3,9 +3,9 @@ package fr.clevertechware.pagination.web;
 import fr.clevertechware.pagination.domain.ListQuery;
 import fr.clevertechware.pagination.domain.OffsetQuery;
 import fr.clevertechware.pagination.service.TransactionService;
-import fr.clevertechware.pagination.web.dto.CountEstimateResponse;
 import fr.clevertechware.pagination.web.dto.KeysetPageResponse;
 import fr.clevertechware.pagination.web.dto.OffsetPageResponse;
+import fr.clevertechware.pagination.web.dto.TotalResponse;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -57,8 +57,9 @@ public class TransactionController {
         return OffsetPageResponse.from(service.listByOffset(query));
     }
 
-    @GetMapping("/count-estimate")
-    public CountEstimateResponse countEstimate() {
-        return new CountEstimateResponse(service.estimatedRowCount(), false);
+    @GetMapping("/total")
+    public TotalResponse total(@RequestParam(name = "exact", required = false) String exact) {
+        boolean exactRequested = QueryParameters.exact(exact);
+        return new TotalResponse(service.total(exactRequested), exactRequested);
     }
 }

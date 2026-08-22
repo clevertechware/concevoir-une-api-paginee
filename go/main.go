@@ -35,7 +35,7 @@ func run() error {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	pool, err := postgres.NewPool(ctx, cfg.Postgres)
+	pool, err := postgres.NewPool(ctx, cfg.Postgres, log)
 	if err != nil {
 		return err
 	}

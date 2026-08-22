@@ -16,3 +16,6 @@ packages:
   github.com/clevertechware/concevoir-une-api-paginee-golang/internal/service:
     interfaces:
       transactionRepository:
+  github.com/clevertechware/concevoir-une-api-paginee-golang/pkg/logger:
+    interfaces:
+      Logger:

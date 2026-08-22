@@ -88,6 +88,16 @@ make mocks              # régénère les doubles après un changement de port
   lignes sur 50 comptes, sinon aucune partition de tenant n'est assez profonde
   pour que le piège de la requête unique fasse des dégâts visibles.
 
+## Voir les requêtes
+
+`logging.level: debug` (ou `PAGINATION_LOGGING__LEVEL=debug`) installe le
+traceur pgx et journalise chaque énoncé SQL, ses arguments et sa durée. Il n'y a
+pas de réglage dédié : le niveau de log est l'interrupteur, et la décision se
+prend une seule fois dans `postgres.NewPool`, parce que pgx alloue à chaque
+requête dès qu'un traceur existe. C'est ce qui rend visible la règle des deux
+requêtes sans lire le code — et cela journalise les arguments, donc les filtres
+du client.
+
 **Piège récurrent** : les compteurs de blocs varient selon ce qui est déjà en
 cache. Toute comparaison de profondeur passe par `RepositorySuite.measure`, qui
 chauffe le cache avant de mesurer.

@@ -12,6 +12,18 @@ type LoggingConfig struct {
 	Format string `koanf:"format"`
 }
 
+// Level is a severity threshold. It mirrors the four levels the configuration
+// accepts, without exposing slog to the rest of the application.
+type Level int
+
+// The levels, ordered from the most verbose to the most severe.
+const (
+	LevelDebug Level = iota
+	LevelInfo
+	LevelWarn
+	LevelError
+)
+
 // Logger is the interface that wraps basic logging methods.
 type Logger interface {
 	Debug(msg string, args ...any)
@@ -21,6 +33,10 @@ type Logger interface {
 
 	// With returns a Logger that includes args in every subsequent record.
 	With(args ...any) Logger
+
+	// Enabled reports whether a record at this level would be emitted, so that
+	// a caller can skip work whose only purpose is a record that gets dropped.
+	Enabled(level Level) bool
 
 	// Context-aware logging methods.
 	DebugContext(ctx context.Context, msg string, args ...any)

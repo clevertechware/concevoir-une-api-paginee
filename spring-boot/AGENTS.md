@@ -39,8 +39,8 @@ Le curseur a son propre package `fr.clevertechware.pagination.cursor` : `CursorC
    chaîne SQL de production telle quelle et la passent à `EXPLAIN`. Passer aux paramètres nommés
    casserait cette propriété.
 4. **`LIMIT limit + 1`**, et la ligne excédentaire est coupée dans le service. Elle ne sort jamais.
-5. **Pas de `total`** dans les réponses de liste. `count-estimate` existe pour ça et assume son
-   `exact: false`.
+5. **Pas de `total`** dans les réponses de liste. `/v1/transactions/total` existe pour ça et assume
+   son `exact: false` ; `exact=true` déclenche le vrai `COUNT(*)`, jamais le défaut.
 6. **`id` sérialisé en chaîne** dans le JSON, `created_at` en RFC 3339 `Z`.
 7. **Pas de migration.** Le schéma est de l'infra partagée (`../sql/01-schema.sql`), l'application
    est en lecture seule (`spring.datasource.hikari.read-only: true`). Pas de Flyway, pas de

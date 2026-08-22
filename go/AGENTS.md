@@ -100,6 +100,13 @@ annulé. Utiliser `context.WithoutCancel(ctx)`, sinon le nettoyage ne part jamai
 - Commentaires de code en anglais. README et ce fichier en français.
 - Les commentaires de `internal/postgres/queries.go` expliquent le *pourquoi* :
   ce sont eux que le lecteur de l'article vient lire. Ne pas les raccourcir.
+- Paramètres de requête : un struct `xxxRequest` par endpoint dans
+  `internal/handler/requests.go`, lié par `c.ShouldBindQuery`. Chaque paramètre
+  est un type nommé qui se valide lui-même dans `UnmarshalParam`
+  (`binding.BindUnmarshaler`) plutôt que dans un tag `binding` : le validateur
+  ne s'exécute qu'après la conversion, donc un `limit=abc` échoue avant lui avec
+  une erreur qui ne nomme pas le champ, alors que le contrat répond avec le code
+  du paramètre fautif.
 - Erreurs : sentinelles de validation dans `internal/domain`, sentinelles de
   curseur dans `pkg/cursor` (qui ne peut pas dépendre d'`internal/`). Le handler
   mappe les deux familles au même endroit, `internal/handler/errors.go`. Un 500

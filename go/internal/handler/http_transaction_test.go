@@ -237,6 +237,8 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 		{name: "rejects page zero", target: "/v1/transactions/offset?page=0", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
 		{name: "rejects a negative page", target: "/v1/transactions/offset?page=-2", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
 		{name: "rejects a page that is not a number", target: "/v1/transactions/offset?page=first", wantStatus: http.StatusBadRequest, wantCode: "invalid_page"},
+		{name: "rejects a size that is not a number", target: "/v1/transactions/offset?size=many", wantStatus: http.StatusBadRequest, wantCode: "invalid_limit"},
+		{name: "rejects an account_id that is not a number", target: "/v1/transactions/offset?account_id=abc", wantStatus: http.StatusBadRequest, wantCode: "invalid_account_id"},
 	}
 
 	for _, tt := range tests {

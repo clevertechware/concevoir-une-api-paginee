@@ -15,6 +15,15 @@ services:
     # No tuning on purpose: shared_buffers stays at its 128 MB default, far
     # below the table size, so the cache thrashes and the plan's `written`
     # counter stays visible.
+    #
+    # log_statement=all is the server-side view of the same thing the Go
+    # tracer shows at debug level: every statement the box receives, seed and
+    # psql sessions included, whichever client sent it. Read it with
+    # `docker compose logs -f postgres`.
+    command:
+      - postgres
+      - -c
+      - log_statement=all
     volumes:
       - postgres_data:/var/lib/postgresql
       - ./sql/01-schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro

@@ -33,8 +33,12 @@ type keysetListRequest struct {
 	Cursor    string    `form:"cursor"`
 }
 
-func (r keysetListRequest) query() domain.ListQuery {
-	return domain.ListQuery{AccountID: r.AccountID.value(), Status: r.Status, Sort: r.Sort.value()}
+func (r keysetListRequest) params() domain.ListParams {
+	return domain.ListParams{
+		Query:  domain.ListQuery{AccountID: r.AccountID.value(), Status: r.Status, Sort: r.Sort.value()},
+		Limit:  r.Limit.value(),
+		Cursor: r.Cursor,
+	}
 }
 
 // offsetListRequest is the query string of GET /v1/transactions/offset.
@@ -42,6 +46,10 @@ type offsetListRequest struct {
 	AccountID accountID  `form:"account_id"`
 	Page      pageNumber `form:"page"`
 	Size      pageSize   `form:"size"`
+}
+
+func (r offsetListRequest) params() domain.OffsetParams {
+	return domain.OffsetParams{AccountID: r.AccountID.value(), Page: r.Page.value(), Size: r.Size.value()}
 }
 
 // totalRequest is the query string of GET /v1/transactions/total.

@@ -107,6 +107,13 @@ annulé. Utiliser `context.WithoutCancel(ctx)`, sinon le nettoyage ne part jamai
   ne s'exécute qu'après la conversion, donc un `limit=abc` échoue avant lui avec
   une erreur qui ne nomme pas le champ, alors que le contrat répond avec le code
   du paramètre fautif.
+- Frontière du service : un `xxxParams` du domaine par appel
+  (`domain.ListParams`, `domain.OffsetParams`) — `Params` côté domaine,
+  `Request` côté HTTP, pour que les deux ne se confondent pas. `Limit` et
+  `Cursor` restent **hors** de `ListQuery` : `ListQuery` est ce que couvre
+  l'empreinte du curseur et ce que reçoit le repository, or un `limit` peut
+  changer en cours de parcours sans invalider le curseur, et le repository ne
+  voit jamais de jeton.
 - Erreurs : sentinelles de validation dans `internal/domain`, sentinelles de
   curseur dans `pkg/cursor` (qui ne peut pas dépendre d'`internal/`). Le handler
   mappe les deux familles au même endroit, `internal/handler/errors.go`. Un 500

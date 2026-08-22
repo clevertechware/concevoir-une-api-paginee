@@ -45,7 +45,10 @@ func TestList_CapsTheLimitInsteadOfRejectingIt(t *testing.T) {
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					List(mock.Anything, mock.Anything, tt.wantLimit, mock.Anything).
+					List(mock.Anything, domain.ListParams{
+						Query: domain.ListQuery{Sort: domain.SortCreatedAtDesc},
+						Limit: tt.wantLimit,
+					}).
 					Return(domain.KeysetPage{}, nil).
 					Once()
 			}
@@ -98,7 +101,11 @@ func TestList_ValidatesTheFilterParameters(t *testing.T) {
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					List(mock.Anything, tt.wantQuery, mock.Anything, tt.wantToken).
+					List(mock.Anything, domain.ListParams{
+						Query:  tt.wantQuery,
+						Limit:  domain.DefaultLimit,
+						Cursor: tt.wantToken,
+					}).
 					Return(domain.KeysetPage{}, nil).
 					Once()
 			}
@@ -121,7 +128,7 @@ func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
 
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{
 			Transactions: []domain.Transaction{{
 				ID:          9500000,
@@ -157,7 +164,7 @@ func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
 
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{Transactions: nil, HasMore: false}, nil).
 		Once()
 
@@ -190,7 +197,11 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 
 			service := mocks.NewTransactionService(t)
 			service.EXPECT().
-				List(mock.Anything, mock.Anything, mock.Anything, "whatever").
+				List(mock.Anything, domain.ListParams{
+					Query:  domain.ListQuery{Sort: domain.SortCreatedAtDesc},
+					Limit:  domain.DefaultLimit,
+					Cursor: "whatever",
+				}).
 				Return(domain.KeysetPage{}, tt.err).
 				Once()
 
@@ -209,7 +220,7 @@ func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
 
 	service := mocks.NewTransactionService(t)
 	service.EXPECT().
-		List(mock.Anything, mock.Anything, mock.Anything, mock.Anything).
+		List(mock.Anything, mock.Anything).
 		Return(domain.KeysetPage{}, errors.New(`pq: relation "transactions" does not exist`)).
 		Once()
 
@@ -248,7 +259,7 @@ func TestListByOffset_ValidatesThePageParameters(t *testing.T) {
 			service := mocks.NewTransactionService(t)
 			if tt.wantStatus == http.StatusOK {
 				service.EXPECT().
-					ListByOffset(mock.Anything, mock.Anything, tt.wantPage, tt.wantSize).
+					ListByOffset(mock.Anything, domain.OffsetParams{Page: tt.wantPage, Size: tt.wantSize}).
 					Return(domain.OffsetPage{}, nil).
 					Once()
 			}

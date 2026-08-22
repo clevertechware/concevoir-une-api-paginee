@@ -39,8 +39,8 @@ func (_m *TransactionService) EXPECT() *TransactionService_Expecter {
 }
 
 // List provides a mock function for the type TransactionService
-func (_mock *TransactionService) List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error) {
-	ret := _mock.Called(ctx, q, limit, token)
+func (_mock *TransactionService) List(ctx context.Context, params domain.ListParams) (domain.KeysetPage, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
@@ -48,16 +48,16 @@ func (_mock *TransactionService) List(ctx context.Context, q domain.ListQuery, l
 
 	var r0 domain.KeysetPage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListQuery, int, string) (domain.KeysetPage, error)); ok {
-		return returnFunc(ctx, q, limit, token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListParams) (domain.KeysetPage, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListQuery, int, string) domain.KeysetPage); ok {
-		r0 = returnFunc(ctx, q, limit, token)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.ListParams) domain.KeysetPage); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		r0 = ret.Get(0).(domain.KeysetPage)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.ListQuery, int, string) error); ok {
-		r1 = returnFunc(ctx, q, limit, token)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.ListParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -71,36 +71,24 @@ type TransactionService_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-//   - q domain.ListQuery
-//   - limit int
-//   - token string
-func (_e *TransactionService_Expecter) List(ctx any, q any, limit any, token any) *TransactionService_List_Call {
-	return &TransactionService_List_Call{Call: _e.mock.On("List", ctx, q, limit, token)}
+//   - params domain.ListParams
+func (_e *TransactionService_Expecter) List(ctx any, params any) *TransactionService_List_Call {
+	return &TransactionService_List_Call{Call: _e.mock.On("List", ctx, params)}
 }
 
-func (_c *TransactionService_List_Call) Run(run func(ctx context.Context, q domain.ListQuery, limit int, token string)) *TransactionService_List_Call {
+func (_c *TransactionService_List_Call) Run(run func(ctx context.Context, params domain.ListParams)) *TransactionService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 domain.ListQuery
+		var arg1 domain.ListParams
 		if args[1] != nil {
-			arg1 = args[1].(domain.ListQuery)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
-		}
-		var arg3 string
-		if args[3] != nil {
-			arg3 = args[3].(string)
+			arg1 = args[1].(domain.ListParams)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -111,14 +99,14 @@ func (_c *TransactionService_List_Call) Return(keysetPage domain.KeysetPage, err
 	return _c
 }
 
-func (_c *TransactionService_List_Call) RunAndReturn(run func(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error)) *TransactionService_List_Call {
+func (_c *TransactionService_List_Call) RunAndReturn(run func(ctx context.Context, params domain.ListParams) (domain.KeysetPage, error)) *TransactionService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListByOffset provides a mock function for the type TransactionService
-func (_mock *TransactionService) ListByOffset(ctx context.Context, accountID int64, page int, size int) (domain.OffsetPage, error) {
-	ret := _mock.Called(ctx, accountID, page, size)
+func (_mock *TransactionService) ListByOffset(ctx context.Context, params domain.OffsetParams) (domain.OffsetPage, error) {
+	ret := _mock.Called(ctx, params)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListByOffset")
@@ -126,16 +114,16 @@ func (_mock *TransactionService) ListByOffset(ctx context.Context, accountID int
 
 	var r0 domain.OffsetPage
 	var r1 error
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, int, int) (domain.OffsetPage, error)); ok {
-		return returnFunc(ctx, accountID, page, size)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.OffsetParams) (domain.OffsetPage, error)); ok {
+		return returnFunc(ctx, params)
 	}
-	if returnFunc, ok := ret.Get(0).(func(context.Context, int64, int, int) domain.OffsetPage); ok {
-		r0 = returnFunc(ctx, accountID, page, size)
+	if returnFunc, ok := ret.Get(0).(func(context.Context, domain.OffsetParams) domain.OffsetPage); ok {
+		r0 = returnFunc(ctx, params)
 	} else {
 		r0 = ret.Get(0).(domain.OffsetPage)
 	}
-	if returnFunc, ok := ret.Get(1).(func(context.Context, int64, int, int) error); ok {
-		r1 = returnFunc(ctx, accountID, page, size)
+	if returnFunc, ok := ret.Get(1).(func(context.Context, domain.OffsetParams) error); ok {
+		r1 = returnFunc(ctx, params)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -149,36 +137,24 @@ type TransactionService_ListByOffset_Call struct {
 
 // ListByOffset is a helper method to define mock.On call
 //   - ctx context.Context
-//   - accountID int64
-//   - page int
-//   - size int
-func (_e *TransactionService_Expecter) ListByOffset(ctx any, accountID any, page any, size any) *TransactionService_ListByOffset_Call {
-	return &TransactionService_ListByOffset_Call{Call: _e.mock.On("ListByOffset", ctx, accountID, page, size)}
+//   - params domain.OffsetParams
+func (_e *TransactionService_Expecter) ListByOffset(ctx any, params any) *TransactionService_ListByOffset_Call {
+	return &TransactionService_ListByOffset_Call{Call: _e.mock.On("ListByOffset", ctx, params)}
 }
 
-func (_c *TransactionService_ListByOffset_Call) Run(run func(ctx context.Context, accountID int64, page int, size int)) *TransactionService_ListByOffset_Call {
+func (_c *TransactionService_ListByOffset_Call) Run(run func(ctx context.Context, params domain.OffsetParams)) *TransactionService_ListByOffset_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		var arg0 context.Context
 		if args[0] != nil {
 			arg0 = args[0].(context.Context)
 		}
-		var arg1 int64
+		var arg1 domain.OffsetParams
 		if args[1] != nil {
-			arg1 = args[1].(int64)
-		}
-		var arg2 int
-		if args[2] != nil {
-			arg2 = args[2].(int)
-		}
-		var arg3 int
-		if args[3] != nil {
-			arg3 = args[3].(int)
+			arg1 = args[1].(domain.OffsetParams)
 		}
 		run(
 			arg0,
 			arg1,
-			arg2,
-			arg3,
 		)
 	})
 	return _c
@@ -189,7 +165,7 @@ func (_c *TransactionService_ListByOffset_Call) Return(offsetPage domain.OffsetP
 	return _c
 }
 
-func (_c *TransactionService_ListByOffset_Call) RunAndReturn(run func(ctx context.Context, accountID int64, page int, size int) (domain.OffsetPage, error)) *TransactionService_ListByOffset_Call {
+func (_c *TransactionService_ListByOffset_Call) RunAndReturn(run func(ctx context.Context, params domain.OffsetParams) (domain.OffsetPage, error)) *TransactionService_ListByOffset_Call {
 	_c.Call.Return(run)
 	return _c
 }

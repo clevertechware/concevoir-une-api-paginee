@@ -13,8 +13,8 @@ import (
 )
 
 type transactionService interface {
-	List(ctx context.Context, q domain.ListQuery, limit int, token string) (domain.KeysetPage, error)
-	ListByOffset(ctx context.Context, accountID int64, page, size int) (domain.OffsetPage, error)
+	List(ctx context.Context, params domain.ListParams) (domain.KeysetPage, error)
+	ListByOffset(ctx context.Context, params domain.OffsetParams) (domain.OffsetPage, error)
 	Total(ctx context.Context, exact bool) (int64, error)
 }
 
@@ -79,7 +79,7 @@ func (h *HTTPTransactionHandler) list(c *gin.Context) {
 		return
 	}
 
-	page, err := h.service.List(c.Request.Context(), request.query(), request.Limit.value(), request.Cursor)
+	page, err := h.service.List(c.Request.Context(), request.params())
 	if err != nil {
 		respondError(c, h.logger, err)
 		return
@@ -99,9 +99,7 @@ func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
 		return
 	}
 
-	page, err := h.service.ListByOffset(
-		c.Request.Context(), request.AccountID.value(), request.Page.value(), request.Size.value(),
-	)
+	page, err := h.service.ListByOffset(c.Request.Context(), request.params())
 	if err != nil {
 		respondError(c, h.logger, err)
 		return

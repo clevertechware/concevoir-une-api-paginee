@@ -80,7 +80,7 @@ func TestList_AsksForOneRowMoreThanThePageAndDropsIt(t *testing.T) {
 				Return(transactions(tt.available), nil).
 				Once()
 
-			page, err := newService(t, repository).List(t.Context(), descendingQuery, tt.limit, "")
+			page, err := newService(t, repository).List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: tt.limit})
 
 			require.NoError(t, err)
 			assert.Len(t, page.Transactions, tt.wantRows)
@@ -103,7 +103,7 @@ func TestList_UsesTheFirstPageQueryWithoutACursor(t *testing.T) {
 		Return(transactions(5), nil).
 		Once()
 
-	_, err := newService(t, repository).List(t.Context(), descendingQuery, 20, "")
+	_, err := newService(t, repository).List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20})
 
 	require.NoError(t, err)
 }
@@ -126,11 +126,11 @@ func TestList_UsesTheNextPageQueryWithACursor(t *testing.T) {
 
 	s := newService(t, repository)
 
-	first, err := s.List(t.Context(), descendingQuery, 20, "")
+	first, err := s.List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20})
 	require.NoError(t, err)
 	require.NotEmpty(t, first.Next)
 
-	_, err = s.List(t.Context(), descendingQuery, 20, first.Next)
+	_, err = s.List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20, Cursor: first.Next})
 	require.NoError(t, err)
 
 	last := first.Transactions[len(first.Transactions)-1]
@@ -155,7 +155,7 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 
 	s := newService(t, repository)
 
-	issued, err := s.List(t.Context(), descendingQuery, 20, "")
+	issued, err := s.List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20})
 	require.NoError(t, err)
 	require.NotEmpty(t, issued.Next)
 
@@ -212,7 +212,7 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := s.List(t.Context(), tt.query, 20, tt.token)
+			_, err := s.List(t.Context(), domain.ListParams{Query: tt.query, Limit: 20, Cursor: tt.token})
 
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -244,7 +244,7 @@ func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
 
 	s := newService(t, repository)
 
-	issued, err := s.List(t.Context(), descendingQuery, 20, "")
+	issued, err := s.List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20})
 	require.NoError(t, err)
 	require.NotEmpty(t, issued.Next)
 
@@ -262,7 +262,7 @@ func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s.now = func() time.Time { return testEpoch.Add(tt.elapsed) }
 
-			_, err := s.List(t.Context(), descendingQuery, 20, issued.Next)
+			_, err := s.List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20, Cursor: issued.Next})
 
 			if tt.wantErr == nil {
 				assert.NoError(t, err)
@@ -279,7 +279,7 @@ func TestList_PropagatesRepositoryFailures(t *testing.T) {
 	repository := mocks.NewTransactionRepository(t)
 	repository.EXPECT().FirstPage(mock.Anything, descendingQuery, 21).Return(nil, errRepo).Once()
 
-	_, err := newService(t, repository).List(t.Context(), descendingQuery, 20, "")
+	_, err := newService(t, repository).List(t.Context(), domain.ListParams{Query: descendingQuery, Limit: 20})
 
 	assert.ErrorIs(t, err, errRepo)
 }
@@ -308,7 +308,9 @@ func TestListByOffset_TranslatesThePageNumberIntoARowsToSkipCount(t *testing.T) 
 				Return(transactions(tt.size+1), nil).
 				Once()
 
-			page, err := newService(t, repository).ListByOffset(t.Context(), 0, tt.page, tt.size)
+			page, err := newService(t, repository).ListByOffset(
+				t.Context(), domain.OffsetParams{Page: tt.page, Size: tt.size},
+			)
 
 			require.NoError(t, err)
 			assert.Equal(t, tt.page, page.Page)

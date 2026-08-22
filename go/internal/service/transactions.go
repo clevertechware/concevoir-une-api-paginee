@@ -39,26 +39,25 @@ func NewTransactions(
 // expired, and must carry the fingerprint of the filters being asked for right
 // now — otherwise the client changed its query mid-walk and would get a page
 // that belongs to neither.
-func (s *Transactions) List(
-	ctx context.Context, q domain.ListQuery, limit int, token string,
-) (domain.KeysetPage, error) {
+func (s *Transactions) List(ctx context.Context, params domain.ListParams) (domain.KeysetPage, error) {
+	q := params.Query
 	fingerprint := cursor.Fingerprint(cursor.Filters{
 		AccountID: q.AccountID,
 		Status:    q.Status,
 		Sort:      string(q.Sort),
 	})
 
-	fetch := limit + 1
+	fetch := params.Limit + 1
 	var (
 		rows []domain.Transaction
 		err  error
 	)
 
-	if token == "" {
+	if params.Cursor == "" {
 		rows, err = s.repository.FirstPage(ctx, q, fetch)
 	} else {
 		var position cursor.Cursor
-		position, err = cursor.DecodeAt(token, s.cursorKey, s.cursorTTL, s.now())
+		position, err = cursor.DecodeAt(params.Cursor, s.cursorKey, s.cursorTTL, s.now())
 		if err != nil {
 			return domain.KeysetPage{}, err
 		}
@@ -81,7 +80,7 @@ func (s *Transactions) List(
 		return domain.KeysetPage{}, err
 	}
 
-	rows, hasMore := trim(rows, limit)
+	rows, hasMore := trim(rows, params.Limit)
 
 	page := domain.KeysetPage{Transactions: rows, HasMore: hasMore}
 	if hasMore {
@@ -100,16 +99,16 @@ func (s *Transactions) List(
 
 // ListByOffset returns one page by rank, the counter-example.
 func (s *Transactions) ListByOffset(
-	ctx context.Context, accountID int64, page, size int,
+	ctx context.Context, params domain.OffsetParams,
 ) (domain.OffsetPage, error) {
-	rows, err := s.repository.OffsetPage(ctx, accountID, (page-1)*size, size+1)
+	rows, err := s.repository.OffsetPage(ctx, params.AccountID, (params.Page-1)*params.Size, params.Size+1)
 	if err != nil {
 		return domain.OffsetPage{}, err
 	}
 
-	rows, hasMore := trim(rows, size)
+	rows, hasMore := trim(rows, params.Size)
 
-	return domain.OffsetPage{Transactions: rows, Page: page, Size: size, HasMore: hasMore}, nil
+	return domain.OffsetPage{Transactions: rows, Page: params.Page, Size: params.Size, HasMore: hasMore}, nil
 }
 
 // Total returns the planner's row estimate, assumed as an estimate.

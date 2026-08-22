@@ -22,9 +22,6 @@ func NewPool(ctx context.Context, cfg config.Postgres, log logger.Logger) (*pgxp
 	poolConfig.MinConns = cfg.MinConns
 	poolConfig.MaxConns = cfg.MaxConns
 
-	// Logging every statement is a debug-level decision, not a setting of its
-	// own: run at debug and the queries are there. It is taken once, here,
-	// because pgx allocates per query as soon as a tracer is installed.
 	if log.Enabled(logger.LevelDebug) {
 		poolConfig.ConnConfig.Tracer = newQueryTracer(log)
 	}

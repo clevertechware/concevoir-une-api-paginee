@@ -226,9 +226,6 @@ func TestList_RejectsACursorThatDoesNotBelongToTheRequest(t *testing.T) {
 // TestList_ExpiresACursorPastItsTTL is what the 410 of the contract rests on.
 // The same token is accepted or refused purely on how much time has passed, so
 // the clock is the only thing that moves between the two cases.
-//
-// The cases move that clock on the shared service, so they run in sequence:
-// t.Parallel() on them would have each case read another case's now().
 func TestList_ExpiresACursorPastItsTTL(t *testing.T) {
 	t.Parallel()
 

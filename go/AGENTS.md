@@ -98,6 +98,11 @@ requête dès qu'un traceur existe. C'est ce qui rend visible la règle des deux
 requêtes sans lire le code — et cela journalise les arguments, donc les filtres
 du client.
 
+La vue serveur existe en parallèle : `make db-up PG_LOG_STATEMENT=all` puis
+`make db-logs`, à la racine du dépôt. Elle voit tout ce qui atteint la base, y
+compris le seed et `make bench`, mais ne sait pas quelle requête HTTP l'a
+provoqué. Éteinte par défaut, sinon `make bench` mesurerait ses propres écritures.
+
 **Piège récurrent** : les compteurs de blocs varient selon ce qui est déjà en
 cache. Toute comparaison de profondeur passe par `RepositorySuite.measure`, qui
 chauffe le cache avant de mesurer.

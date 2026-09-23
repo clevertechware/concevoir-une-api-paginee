@@ -35,7 +35,7 @@ pagination continue sans rien remarquer.
 |---|---|
 | `GET /v1/transactions` | La pagination keyset recommandée : curseur opaque signé, coût indépendant de la profondeur |
 | `GET /v1/transactions/offset` | Le contre-exemple, pour être mesuré à côté — pas pour être réutilisé |
-| `GET /v1/transactions/count-estimate` | La réponse honnête à « donnez-moi un total » : une estimation, assumée comme telle |
+| `GET /v1/transactions/total` | La réponse honnête à « donnez-moi un total » : une estimation par défaut, le compte exact sur `?exact=true` |
 | `GET /healthz` | L'état du pool |
 
 ## Ce qu'il faut lire

@@ -65,7 +65,7 @@ func (r *TransactionRepository) OffsetPage(
 	return r.query(ctx, offsetPage, limit, offset)
 }
 
-// Count retrieves the total number of rows in the `transactions` table. It returns the count and an error, if any.
+// Count returns the exact number of rows, at the price of a full scan.
 func (r *TransactionRepository) Count(ctx context.Context) (int64, error) {
 	var count int64
 	if err := r.pool.QueryRow(ctx, countQuery).Scan(&count); err != nil {

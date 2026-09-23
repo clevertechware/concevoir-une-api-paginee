@@ -122,7 +122,7 @@ const (
 		LIMIT $2 OFFSET $3`
 )
 
-// countQuery is a SQL query that retrieves the total count of rows from the `transactions` table.
+// countQuery is the exact count that countEstimate exists to avoid.
 const countQuery = `SELECT count(*) FROM transactions`
 
 // countEstimate reads the planner's own row estimate instead of counting.

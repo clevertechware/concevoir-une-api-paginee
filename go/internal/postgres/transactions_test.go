@@ -139,7 +139,6 @@ func (s *RepositorySuite) TestCountEstimate_ApproximatesTheTableWithoutCountingI
 	assert.EqualValues(t, seededRows, estimate)
 }
 
-// TestCount verifies that the Count method of the repository returns the correct number of records without errors.
 func (s *RepositorySuite) TestCount() {
 	t := s.T()
 

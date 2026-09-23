@@ -119,7 +119,6 @@ func DecodeAt(token string, key []byte, ttl time.Duration, now time.Time) (Curso
 		return Cursor{}, ErrInvalidCursor
 	}
 
-	// Reading is the easy direction: any JSON parser accepts the canonical form.
 	var p wirePayload
 	if err = json.Unmarshal(payload, &p); err != nil || p.Version != Version {
 		return Cursor{}, ErrInvalidCursor

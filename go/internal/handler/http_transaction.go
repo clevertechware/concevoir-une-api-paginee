@@ -43,7 +43,6 @@ type transactionResponse struct {
 }
 
 type keysetPageResponse struct {
-	// Next is null at the end of the walk, and it is the only authority on that.
 	Next    *string `json:"next"`
 	HasMore bool    `json:"has_more"`
 }

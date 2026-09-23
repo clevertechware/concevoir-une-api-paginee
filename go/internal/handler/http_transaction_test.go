@@ -157,8 +157,6 @@ func TestList_SerialisesTheContractedEnvelope(t *testing.T) {
 	}`, recorder.Body.String())
 }
 
-// TestList_ReportsTheEndOfTheWalkWithANullNext keeps next as the single
-// authority on the end of the walk.
 func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
 	t.Parallel()
 
@@ -174,9 +172,6 @@ func TestList_ReportsTheEndOfTheWalkWithANullNext(t *testing.T) {
 	assert.JSONEq(t, `{"data": [], "page": {"next": null, "has_more": false}}`, recorder.Body.String())
 }
 
-// TestList_MapsCursorFailuresToTheContractedStatus is where the 410 earns its
-// place: an expired cursor is not a malformed request, and the difference is
-// exactly what tells a client to restart its walk instead of fixing its query.
 func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 	t.Parallel()
 
@@ -213,8 +208,6 @@ func TestList_MapsCursorFailuresToTheContractedStatus(t *testing.T) {
 	}
 }
 
-// TestList_NeverLeaksTheInternalErrorOnA500 keeps table names and query
-// fragments out of a response body.
 func TestList_NeverLeaksTheInternalErrorOnA500(t *testing.T) {
 	t.Parallel()
 

@@ -171,7 +171,6 @@ func duplicatesIn(ids []int64) []int64 {
 	return duplicates
 }
 
-// missingFrom returns the identifiers of the original dataset that never came back.
 func missingFrom(seen []int64, total int) []int64 {
 	found := make(map[int64]struct{}, len(seen))
 	for _, id := range seen {

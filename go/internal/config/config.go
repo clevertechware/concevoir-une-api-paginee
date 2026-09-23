@@ -21,8 +21,7 @@ import (
 const (
 	configFileName = "application.yaml"
 
-	// envPrefix scopes the environment variables we consider. Nested keys use a
-	// double underscore: PAGINATION_CURSOR__KEY overrides cursor.key.
+	// Nested keys use a double underscore: PAGINATION_CURSOR__KEY overrides cursor.key.
 	envPrefix = "PAGINATION_"
 	envNested = "__"
 )
@@ -77,8 +76,7 @@ type Cursor struct {
 	// Key signs the payload. Rotating it invalidates every token in flight,
 	// which is the intended blast radius: clients restart their walk.
 	Key string `koanf:"key"`
-	// TTL is how long a position stays resumable. Past it the answer is 410,
-	// never 400: the request was well formed, the position is simply gone.
+	// TTL is how long a position stays resumable. Past it the answer is 410.
 	TTL time.Duration `koanf:"ttl"`
 }
 

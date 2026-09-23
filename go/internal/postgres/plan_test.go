@@ -107,10 +107,8 @@ func (s *RepositorySuite) TestExplain_OffsetCostGrowsWithDepth() {
 // That is what makes the trap so hard to spot: it looks fine in psql.
 //
 // But a prepared statement reused a few times, which is the normal behaviour of
-// most drivers including pgx, switches to a generic plan. There $1 is unknown
-// at planning time, the predicate can no longer be an index bound, and it
-// degrades into a Filter: the scan restarts from the top of the account's
-// partition and discards rows one by one.
+// most drivers including pgx, switches to a generic plan, and the bound
+// degrades into a Filter (see keysetQueries).
 //
 // `SET plan_cache_mode = force_generic_plan` reproduces that switch on demand,
 // instead of executing the statement five times and hoping.

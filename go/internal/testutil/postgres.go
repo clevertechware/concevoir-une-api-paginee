@@ -82,10 +82,8 @@ func Shared(t *testing.T) *Postgres {
 }
 
 func start(ctx context.Context) (*Postgres, func() error, error) {
-	// The schema is shared infrastructure: the application never applies it, and
-	// neither does a migration tool. The tests read the very same file the
-	// compose entrypoint uses, so a schema change cannot pass the suite while
-	// breaking the running stack.
+	// Same file as the compose entrypoint, so a schema change cannot pass the
+	// suite while breaking the running stack.
 	schema, err := readSharedSchema()
 	if err != nil {
 		return nil, nil, err

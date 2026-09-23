@@ -42,9 +42,7 @@ func respondError(c *gin.Context, log logger.Logger, err error) {
 
 func statusFor(err error) (status int, code string) {
 	switch {
-	// A well-formed request pointing at a position that no longer exists. 410,
-	// not 400: that distinction is exactly what tells the client to restart its
-	// walk rather than to fix its query.
+	// See cursor.ErrCursorExpired for why this is a 410 and not a 400.
 	case errors.Is(err, cursor.ErrCursorExpired):
 		return http.StatusGone, "cursor_expired"
 

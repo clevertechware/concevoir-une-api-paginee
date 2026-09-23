@@ -1,19 +1,16 @@
 # L'implémentation Go
 
 L'API paginée de [l'article](https://www.clevertechware.fr/blog/posts/2026/concevoir-une-api-paginee),
-en Go 1.26. Elle implémente [`../spec/contract.md`](../spec/contract.md), que
-[`../spring-boot/`](../spring-boot) implémente aussi : un curseur émis ici est
-accepté là-bas sans que le client s'en aperçoive.
+en Go 1.26. Elle implémente [`../spec/contract.md`](../spec/contract.md), comme
+[`../spring-boot/`](../spring-boot) : un curseur émis ici est accepté là-bas.
 
-L'article défend une dizaine d'affirmations. Ce projet ne les répète pas, il les
-**mesure** : chacune a un test qui interroge un vrai PostgreSQL et lit son plan
-d'exécution. Sur le jeu de test à 100 000 lignes, la même page rendue à 99 800
+Chaque affirmation de l'article a un test qui interroge un vrai PostgreSQL et lit
+son plan d'exécution. Sur le jeu de test à 100 000 lignes, la même page à 99 800
 lignes de profondeur coûte **14 blocs en keyset et 3 434 en `OFFSET`**.
 
 ## Démarrage
 
-Le schéma et les données sont de l'infrastructure partagée, montée depuis la
-racine du dépôt :
+Le schéma et les données sont de l'infrastructure partagée, montée depuis la racine :
 
 ```bash
 cd .. && make db-up && make seed ROWS=100000
@@ -29,9 +26,8 @@ make run                    # http://localhost:8080
 curl 'http://localhost:8080/v1/transactions?account_id=42&limit=3'
 ```
 
-Récupérez le `page.next` de la réponse et rejouez-le sur l'API Spring Boot du
-port 8081 : la pagination continue sans rien remarquer. C'est toute la thèse du
-curseur opaque, en une commande.
+Rejouez le `page.next` de la réponse sur l'API Spring Boot (port 8081) : la
+pagination continue sans rien remarquer.
 
 ## Ce que le projet expose
 
@@ -44,25 +40,17 @@ curseur opaque, en une commande.
 
 ## Ce qu'il faut lire
 
-Trois fichiers portent l'essentiel :
-
-**[`pkg/cursor/cursor.go`](pkg/cursor/cursor.go)** — le curseur. Public, parce
-que c'est une frontière de contrat et pas un détail d'implémentation. La charge
-utile s'écrit **à la main** : `json.Marshal` ordonnerait les clés selon la
-struct et formaterait le timestamp en RFC3339Nano, qui tronque les zéros de fin.
-L'un ou l'autre change les octets, et changer les octets change la signature —
-donc casse l'interopérabilité avec Java, silencieusement.
-
-**[`internal/postgres/queries.go`](internal/postgres/queries.go)** — les huit
-requêtes, écrites en entier plutôt qu'assemblées. Quatre variantes (première
-page / pages suivantes × filtrée / non filtrée) par sens de tri. Il en faut
-quatre et pas une : la requête unique qui gère les deux cas via
-`($1 IS NULL OR …)` s'effondre dès que le driver bascule sur un plan générique,
-et on a réinventé `OFFSET` avec la syntaxe du keyset.
-
-**[`internal/service/transactions.go`](internal/service/transactions.go)** — le
-`limit + 1` et la ligne excédentaire qu'on jette. Elle répond à `has_more` pour
-le prix d'une ligne, contre 101 ms pour un `COUNT(*)`.
+- **[`pkg/cursor/cursor.go`](pkg/cursor/cursor.go)** : le curseur, public car
+  c'est une frontière de contrat. La charge utile s'écrit **à la main** :
+  `json.Marshal` changerait les octets (ordre des clés, RFC3339Nano), donc la
+  signature, donc casserait l'interopérabilité avec Java.
+- **[`internal/postgres/queries.go`](internal/postgres/queries.go)** : les huit
+  requêtes, écrites en entier : quatre variantes (première page / suivantes ×
+  filtrée / non filtrée) par sens de tri. La requête unique `($1 IS NULL OR …)`
+  s'effondre dès que le driver bascule sur un plan générique.
+- **[`internal/service/transactions.go`](internal/service/transactions.go)** : le
+  `limit + 1` et la ligne jetée, soit `has_more` pour le prix d'une ligne, contre
+  101 ms pour un `COUNT(*)`.
 
 ## Tester
 
@@ -73,8 +61,7 @@ make explain            # uniquement les mesures de plan, avec leurs chiffres
 ```
 
 Les tests d'intégration montent leur propre PostgreSQL, y appliquent
-`../sql/01-schema.sql` et sèment leur jeu de données. Ils ne touchent pas à la
-base de développement et n'ont pas besoin du `make seed` ci-dessus.
+`../sql/01-schema.sql` et sèment leurs données : pas besoin du `make seed`.
 
 ### Ce que chaque test prouve
 
@@ -97,29 +84,28 @@ base de développement et n'ont pas besoin du `make seed` ci-dessus.
 
 ## Configuration
 
-`application.yaml`, surchargeable par l'environnement avec le préfixe
-`PAGINATION_` et `__` pour la profondeur :
+`application.yaml`, surchargeable par l'environnement (préfixe `PAGINATION_`,
+`__` pour la profondeur) :
 
 ```bash
 PAGINATION_CURSOR__KEY=une-vraie-cle PAGINATION_POSTGRES__HOST=db make run
 ```
 
-La clé de signature du curseur committée est une valeur de développement. En
-production elle vient de l'environnement : une clé vide fait refuser le
-démarrage, parce qu'un curseur non signé est une position qu'un client peut
-forger.
+La clé de signature committée est une clé de développement. Une clé vide fait
+refuser le démarrage : un curseur non signé est forgeable.
 
 ## Structure
 
 ```
-cmd/server/              câblage explicite, signal.NotifyContext, arrêt gracieux
+main.go                  câblage explicite, signal.NotifyContext, arrêt gracieux
 internal/
   config/                koanf : application.yaml puis l'environnement
   domain/                entités, tri, bornes de pagination, erreurs de validation
   handler/               gin, les trois endpoints, le mapping erreur → statut
-  logger/                slog derrière une interface, pour un logger muet en test
   postgres/              le repository et ses huit requêtes, en lecture seule
   service/               le curseur, le limit + 1, l'aiguillage première/suivante
   testutil/              le conteneur PostgreSQL et les jeux de données de test
-pkg/cursor/              le format du curseur — public, c'est le contrat
+pkg/
+  cursor/                le format du curseur — public, c'est le contrat
+  logger/                slog derrière une interface, pour un logger muet en test
 ```

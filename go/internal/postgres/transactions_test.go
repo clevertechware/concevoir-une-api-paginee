@@ -128,9 +128,8 @@ func (s *RepositorySuite) TestOffsetPage_ReturnsTheSameRowsAsTheKeysetOnAStillTa
 	assert.Equal(t, idsOf(byKeyset), idsOf(byOffset))
 }
 
-// TestCountEstimate_ApproximatesTheTableWithoutCountingIt is the honest answer
-// to a client asking for a total: reltuples is a single catalogue lookup, where
-// COUNT(*) reads the whole table.
+// TestCountEstimate_ApproximatesTheTableWithoutCountingIt relies on reltuples
+// being a single catalogue lookup, where COUNT(*) reads the whole table.
 func (s *RepositorySuite) TestCountEstimate_ApproximatesTheTableWithoutCountingIt() {
 	t := s.T()
 

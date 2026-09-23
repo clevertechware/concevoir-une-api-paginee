@@ -111,7 +111,7 @@ func (s *Transactions) ListByOffset(
 	return domain.OffsetPage{Transactions: rows, Page: params.Page, Size: params.Size, HasMore: hasMore}, nil
 }
 
-// Total returns the planner's row estimate, assumed as an estimate.
+// Total returns the exact count when asked to, the planner's row estimate otherwise.
 func (s *Transactions) Total(ctx context.Context, exact bool) (int64, error) {
 	if exact {
 		return s.repository.Count(ctx)

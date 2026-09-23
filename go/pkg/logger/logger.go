@@ -38,7 +38,6 @@ type Logger interface {
 	// a caller can skip work whose only purpose is a record that gets dropped.
 	Enabled(level Level) bool
 
-	// Context-aware logging methods.
 	DebugContext(ctx context.Context, msg string, args ...any)
 	InfoContext(ctx context.Context, msg string, args ...any)
 	WarnContext(ctx context.Context, msg string, args ...any)

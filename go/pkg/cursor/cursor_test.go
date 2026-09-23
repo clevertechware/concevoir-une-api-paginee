@@ -44,8 +44,7 @@ func TestEncodeDecode_PreservesThePosition(t *testing.T) {
 }
 
 // TestDecode_RejectsAnythingButAnUntouchedToken covers the claim that a cursor
-// cannot be forged. Every case answers the same ErrInvalidCursor: telling them
-// apart would tell an attacker which check to work on next.
+// cannot be forged. Every case answers the same ErrInvalidCursor.
 func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
 	t.Parallel()
 
@@ -123,8 +122,6 @@ func TestDecode_RejectsAnythingButAnUntouchedToken(t *testing.T) {
 	}
 }
 
-// TestDecode_ExpiresOnTTL is why the contract answers 410 rather than 400: the
-// token is perfectly valid, it just points at a position that is too old to resume from.
 func TestDecode_ExpiresOnTTL(t *testing.T) {
 	t.Parallel()
 

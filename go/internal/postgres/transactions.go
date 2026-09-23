@@ -12,8 +12,7 @@ import (
 )
 
 // TransactionRepository reads transactions. Read-only by design: the schema is
-// shared infrastructure, applied by the container, and both implementations of
-// the demo query the very same rows.
+// shared infrastructure.
 //
 // Every method takes the limit it should pass to the database verbatim. The
 // caller is the one that asks for one row more than the page and drops it, so
@@ -28,8 +27,8 @@ func NewTransactionRepository(pool *pgxpool.Pool, log logger.Logger) *Transactio
 	return &TransactionRepository{pool: pool, logger: log}
 }
 
-// FirstPage returns the head of a keyset walk.
-// No cursor, so no bound at all because not a bound neutralized by an IS NULL.
+// FirstPage returns the head of a keyset walk. There is no cursor, so there is no
+// bound at all, rather than a bound neutralised by an IS NULL.
 func (r *TransactionRepository) FirstPage(
 	ctx context.Context, q domain.ListQuery, limit int,
 ) ([]domain.Transaction, error) {

@@ -7,7 +7,7 @@ import java.util.List;
 public record KeysetPageResponse(List<TransactionResponse> data, PageInfo page) {
 
     /**
-     * @param next     {@code null} at the end of the walk, and the only authority on that end
+     * @param next     {@code null} at the end of the walk
      * @param hasMore  redundant with {@code next} on purpose: the contract then reads without its
      *                 documentation
      */

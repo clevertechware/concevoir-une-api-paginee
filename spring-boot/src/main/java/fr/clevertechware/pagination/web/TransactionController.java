@@ -42,7 +42,7 @@ public class TransactionController {
         return KeysetPageResponse.from(service.list(query));
     }
 
-    /** The counter-example, kept so the two can be measured side by side. Not the recommendation. */
+    /** The counter-example, not the recommendation. */
     @GetMapping("/offset")
     public OffsetPageResponse listByOffset(
             @RequestParam(name = "account_id", required = false) String accountId,

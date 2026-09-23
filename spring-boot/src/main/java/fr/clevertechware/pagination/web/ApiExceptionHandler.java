@@ -31,10 +31,7 @@ public class ApiExceptionHandler {
         return ResponseEntity.badRequest().body(ErrorResponse.of("cursor_filter_mismatch", e.getMessage()));
     }
 
-    /**
-     * 410 rather than 400: the request was well-formed, it is the position that no longer exists,
-     * which is exactly what the client needs to know to decide to restart the walk.
-     */
+    /** See {@link CursorExpiredException} for why this is a 410 and not a 400. */
     @ExceptionHandler(CursorExpiredException.class)
     public ResponseEntity<ErrorResponse> onCursorExpired(CursorExpiredException e) {
         return ResponseEntity.status(HttpStatus.GONE).body(ErrorResponse.of("cursor_expired", e.getMessage()));

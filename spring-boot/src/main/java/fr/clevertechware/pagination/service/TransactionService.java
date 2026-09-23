@@ -72,10 +72,7 @@ public class TransactionService {
         return cursor;
     }
 
-    /**
-     * The row beyond the page is what answers {@code has_more}. It costs one row, against the 101 ms
-     * of a {@code COUNT(*)}, and it is trimmed here so it never reaches the client.
-     */
+    /** The row beyond the page is what answers {@code has_more}; it is trimmed here so it never reaches the client. */
     private List<Transaction> fetchOneMoreThanThePage(ListQuery query, Cursor cursor) {
         int limit = query.limit() + 1;
         if (cursor == null) {

@@ -87,9 +87,7 @@ class ExecutionPlanIT extends AbstractDatabaseTest {
 
     /**
      * The trap of the article, executed rather than described: one statement for every page, guarded
-     * by {@code $1 IS NULL}. Under a generic plan the bound can no longer be an index bound, so the
-     * database descends from the top of the account partition and throws rows away — {@code OFFSET}
-     * with keyset syntax.
+     * by {@code $1 IS NULL}, run under a generic plan. See {@link TransactionQueries} for why it degrades.
      */
     @Test
     void theSingleStatementGuardedByIsNullDegradesIntoAFilterUnderAGenericPlan() throws SQLException {

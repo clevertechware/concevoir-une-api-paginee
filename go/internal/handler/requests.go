@@ -57,8 +57,7 @@ type totalRequest struct {
 	Exact exactFlag `form:"exact"`
 }
 
-// accountID is the positive bigint tenant filter. Absent is 0, which is also
-// the value the cursor fingerprint uses for "no filter".
+// accountID is the positive bigint tenant filter. Absent is 0.
 type accountID int64
 
 func (a *accountID) UnmarshalParam(raw string) error {
@@ -95,8 +94,7 @@ func (s *pageSize) UnmarshalParam(raw string) error {
 	return nil
 }
 
-// value caps rather than rejects: a client asking for 10 000 rows gets 100 and
-// a 200. Absent and zero both fall back to the default.
+// value caps rather than rejects. Absent and zero both fall back to the default.
 func (s pageSize) value() int {
 	return domain.CapLimit(int(s), domain.DefaultLimit, domain.MaxLimit)
 }
@@ -104,7 +102,6 @@ func (s pageSize) value() int {
 // pageNumber is the 1-based page of the offset endpoint.
 type pageNumber int
 
-// UnmarshalParam parses a raw string into a pageNumber, ensuring it is a valid integer greater than or equal to 1.
 func (n *pageNumber) UnmarshalParam(raw string) error {
 	if raw == "" {
 		return nil
@@ -119,7 +116,6 @@ func (n *pageNumber) UnmarshalParam(raw string) error {
 	return nil
 }
 
-// value returns the 1-based page number, defaulting to 1 if absent.
 func (n pageNumber) value() int {
 	if n == 0 {
 		return 1

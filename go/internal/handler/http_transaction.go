@@ -65,8 +65,8 @@ type offsetListResponse struct {
 
 type countEstimateResponse struct {
 	Estimate int64 `json:"estimate"`
-	// Exact is always false, and saying so is the point: a client that needs a
-	// total gets an honest estimate rather than a number that cost 101 ms.
+	// Exact tells the client whether Estimate is a real count or the planner's
+	// guess. The real one costs 101 ms on the article's dataset.
 	Exact bool `json:"exact"`
 }
 
@@ -110,7 +110,7 @@ func (h *HTTPTransactionHandler) listByOffset(c *gin.Context) {
 	})
 }
 
-// total serves GET /v1/transactions/count-estimate.
+// total serves GET /v1/transactions/total.
 func (h *HTTPTransactionHandler) total(c *gin.Context) {
 	var request totalRequest
 	if err := c.ShouldBindQuery(&request); err != nil {
